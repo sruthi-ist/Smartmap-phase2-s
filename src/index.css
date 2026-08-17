@@ -1,0 +1,326 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Tajawal:wght@300;400;500;700;800;900&display=swap');
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+
+@variant dark (&:where(.dark, .dark *));
+
+:root {
+  /* 2026 GeoVision Blue Glassmorphism Palette */
+  --deep-space-blue: #071B33;
+  --geovision-blue: #176BFF;
+  --geovision-blue-hover: #0f56d9;
+  --azure-blue: #3B8EFF;
+  --electric-blue: #4CA7FF;
+  --cyan-accent: #70D7FF;
+  --pale-blue: #EAF5FF;
+  --frost-surface: rgba(255, 255, 255, 0.68);
+  --bg-page: #F3F8FD;
+  --text-main: #10223A;
+  --text-secondary: #66788E;
+  --border-glass: rgba(255, 255, 255, 0.65);
+
+  --font-en: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-ar: 'Tajawal', 'Inter', system-ui, sans-serif;
+}
+
+body {
+  font-family: var(--font-en);
+  background-color: var(--bg-page);
+  color: var(--text-main);
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+[dir="rtl"] body,
+[dir="rtl"] {
+  font-family: var(--font-ar);
+}
+
+/* 3-Level Glassmorphism Hierarchy */
+
+/* Level 1 — Light Glass (Pills, badges, small controls) */
+.glass-level-1 {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 4px 15px rgba(23, 107, 255, 0.06);
+}
+
+/* Level 2 — Standard Glass (Capsule navigation, 74px AI search, tool dock, feature cards) */
+.glass-level-2,
+.glass-panel {
+  background: rgba(255, 255, 255, 0.68);
+  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  box-shadow:
+    0 16px 40px rgba(26, 79, 145, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 0.70);
+}
+
+/* Level 3 — Strong Frosted Glass (GeoVision AI panel, drawers, authentication, modals) */
+.glass-level-3 {
+  background: rgba(248, 252, 255, 0.78);
+  backdrop-filter: blur(28px) saturate(170%);
+  -webkit-backdrop-filter: blur(28px) saturate(170%);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  box-shadow:
+    0 20px 50px rgba(7, 27, 51, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+/* Blue Soft Ambient Glow */
+.glow-blue-lg {
+  box-shadow:
+    0 0 45px -5px rgba(23, 107, 255, 0.22),
+    0 16px 40px rgba(26, 79, 145, 0.10);
+}
+
+/* Atmospheric Background with Spatial Contours */
+.bg-spatial-canvas {
+  background:
+    radial-gradient(circle at 20% 20%, rgba(61, 142, 255, 0.16), transparent 28%),
+    radial-gradient(circle at 85% 35%, rgba(112, 215, 255, 0.12), transparent 26%),
+    linear-gradient(135deg, #F8FBFF 0%, #EEF6FF 55%, #F7FBFF 100%);
+}
+
+/* Dark Mode Glassmorphism Overrides */
+.dark body,
+.dark {
+  background-color: #070F1E;
+  color: #F8FAFC;
+}
+
+.dark .bg-spatial-canvas {
+  background:
+    radial-gradient(circle at 15% 15%, rgba(23, 107, 255, 0.22), transparent 35%),
+    radial-gradient(circle at 85% 40%, rgba(56, 189, 248, 0.16), transparent 32%),
+    linear-gradient(135deg, #070F1E 0%, #0B172E 50%, #060D1A 100%);
+}
+
+.dark .glass-level-1 {
+  background: rgba(15, 25, 42, 0.88);
+  backdrop-filter: blur(18px) saturate(170%);
+  -webkit-backdrop-filter: blur(18px) saturate(170%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+}
+
+.dark .glass-level-2,
+.dark .glass-panel {
+  background: rgba(13, 22, 38, 0.92);
+  backdrop-filter: blur(26px) saturate(170%);
+  -webkit-backdrop-filter: blur(26px) saturate(170%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.dark .glass-level-3 {
+  background: rgba(10, 18, 32, 0.96);
+  backdrop-filter: blur(32px) saturate(180%);
+  -webkit-backdrop-filter: blur(32px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.20);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+
+.dark input,
+.dark select,
+.dark textarea {
+  color-scheme: dark;
+  color: #F8FAFC;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #94A3B8;
+  opacity: 0.9;
+}
+
+.dark option {
+  background-color: #0F172A;
+  color: #F8FAFC;
+}
+
+/* Custom Blue & Red Palette Helpers */
+.bg-geovision-blue {
+  background-color: var(--geovision-blue);
+}
+.hover\:bg-geovision-blue-dark:hover {
+  background-color: var(--geovision-blue-hover);
+}
+.text-geovision-blue {
+  color: var(--geovision-blue);
+}
+.border-geovision-blue {
+  border-color: var(--geovision-blue);
+}
+
+.bg-dge-red {
+  background-color: #E11D48;
+}
+.text-dge-red {
+  color: #E11D48;
+}
+.border-dge-red {
+  border-color: #E11D48;
+}
+
+/* Leaflet Canvas Container Fixes */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  font-family: inherit;
+}
+
+/* GeoVision Glassmorphism Theme Leaflet Popups */
+.leaflet-popup {
+  margin-bottom: 24px;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 22px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow:
+    0 20px 45px rgba(7, 27, 51, 0.18),
+    0 0 25px rgba(23, 107, 255, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  overflow: hidden;
+  transition: all 0.25s ease;
+}
+
+.dark .leaflet-popup-content-wrapper {
+  background: rgba(10, 25, 46, 0.90);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(130, 190, 255, 0.22);
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.6),
+    0 0 25px rgba(23, 107, 255, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  color: #F4F8FC;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  padding: 14px 16px !important;
+  font-family: var(--font-en);
+  line-height: 1.4;
+  min-width: 220px;
+}
+
+.leaflet-popup-tip-container {
+  width: 30px;
+  height: 15px;
+}
+
+.leaflet-popup-tip {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 4px 12px rgba(7, 27, 51, 0.12);
+  width: 14px;
+  height: 14px;
+}
+
+.dark .leaflet-popup-tip {
+  background: rgba(10, 25, 46, 0.90);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.leaflet-container a.leaflet-popup-close-button {
+  top: 10px !important;
+  right: 10px !important;
+  width: 26px !important;
+  height: 26px !important;
+  line-height: 24px !important;
+  border-radius: 9999px !important;
+  background: rgba(16, 34, 58, 0.06);
+  color: #66788E !important;
+  font-size: 16px !important;
+  font-weight: 700;
+  text-align: center;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.leaflet-container a.leaflet-popup-close-button:hover {
+  background: #176BFF !important;
+  color: #ffffff !important;
+  transform: scale(1.08);
+}
+
+.dark .leaflet-container a.leaflet-popup-close-button {
+  background: rgba(255, 255, 255, 0.1);
+  color: #94A3B8 !important;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.dark .leaflet-container a.leaflet-popup-close-button:hover {
+  background: #176BFF !important;
+  color: #ffffff !important;
+}
+
+/* Refined Scrollbars */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #1e293b;
+}
+
+/* Custom Leaflet Category Pointer Pin Styles */
+.custom-leaflet-marker-pin {
+  background: transparent !important;
+  border: none !important;
+}
+
+.geovision-map-pointer {
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.25s ease;
+}
+
+.custom-leaflet-marker-pin:hover .geovision-map-pointer {
+  transform: translateY(-5px) scale(1.18) !important;
+  z-index: 9999 !important;
+}
+
+/* Animated Floating Effects & Gradient Text */
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+.animate-float-slow {
+  animation: floatSlow 6s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 4s ease-in-out infinite;
+}
+
+.gradient-text-blue {
+  background: linear-gradient(135deg, #176BFF 0%, #3B8EFF 50%, #70D7FF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}

@@ -1,0 +1,82 @@
+import React, { useState } from 'react';
+import { useAppState } from '../../context/AppStateContext';
+import { CATEGORIES } from '../../data/mockAbuDhabiData';
+import { CategoryChecklistDrawer } from './CategoryChecklistDrawer';
+import { Activity, GraduationCap, Bus, Building2, Trees, Zap, Check, Plus, Filter } from 'lucide-react';
+
+const ICON_MAP: Record<string, React.FC<{ className?: string }>> = {
+  Activity,
+  GraduationCap,
+  Bus,
+  Building2,
+  Trees,
+  Zap,
+};
+
+export const MapCategoryDock: React.FC = () => {
+  const { language, selectedCategoryIds, selectedSubcategoryIds, toggleCategorySelection } = useAppState();
+  const [checklistOpen, setChecklistOpen] = useState(false);
+
+  return (
+    <>
+      {/* Category Checklist Modal Drawer */}
+      <CategoryChecklistDrawer isOpen={checklistOpen} onClose={() => setChecklistOpen(false)} />
+
+      {/* Floating Map Category Capsule Dock */}
+      <div className="absolute bottom-14 sm:bottom-16 left-1/2 -translate-x-1/2 z-[500] max-w-[calc(100vw-2rem)] sm:max-w-[720px] w-full sm:w-max pointer-events-auto px-2">
+        <div className="glass-level-3 bg-white/85 dark:bg-slate-900/90 backdrop-blur-xl p-1.5 px-3 rounded-full shadow-2xl border border-white/80 dark:border-slate-700/80 flex items-center gap-1.5 max-w-full glow-blue">
+          
+          {/* Fixed Section: Checklist & Plus Action Buttons */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            {/* Checklist Trigger Button */}
+            <button
+              onClick={() => setChecklistOpen(true)}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-geovision-blue text-white shadow-md shadow-blue-500/25 hover:bg-blue-600 active:scale-95 transition-all shrink-0 cursor-pointer"
+            >
+              <Filter className="w-3.5 h-3.5" />
+              <span>Checklist ({selectedSubcategoryIds.length})</span>
+            </button>
+
+            {/* Plus / More Categories Button */}
+            <button
+              onClick={() => setChecklistOpen(true)}
+              className="p-1.5 rounded-full text-slate-600 dark:text-slate-200 hover:text-geovision-blue hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0 cursor-pointer"
+              title="Open Category Checklist"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+
+            {/* Vertical Divider */}
+            <div className="w-px h-4 bg-slate-300 dark:bg-slate-700/80 shrink-0 mx-0.5" />
+          </div>
+
+          {/* Scrollable Categories List */}
+          <div className="flex-1 flex items-center gap-1.5 overflow-x-auto scrollbar-none min-w-0 py-0.5">
+            {CATEGORIES.map((cat) => {
+              const IconComp = ICON_MAP[cat.icon] || Activity;
+              const isSelected = selectedCategoryIds.includes(cat.id);
+
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => toggleCategorySelection(cat.id)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all shrink-0 cursor-pointer ${
+                    isSelected
+                      ? 'bg-blue-50 dark:bg-blue-950/90 text-geovision-blue dark:text-blue-300 border border-geovision-blue/40 shadow-xs font-bold'
+                      : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/90 hover:text-geovision-blue'
+                  }`}
+                >
+                  <IconComp className="w-3.5 h-3.5" />
+                  <span>{language === 'ar' ? cat.nameAr : cat.nameEn}</span>
+                  {isSelected && <Check className="w-3.5 h-3.5 text-geovision-blue stroke-[3]" />}
+                </button>
+              );
+            })}
+          </div>
+
+        </div>
+      </div>
+    </>
+  );
+};
+
