@@ -146,7 +146,7 @@ export const AIMessageSearchResults: React.FC<AIMessageSearchResultsProps> = ({
 
             {/* Layer Checkbox Popup Menu */}
             {layerMenuOpen && (
-              <div className="absolute right-0 top-full mt-2 z-[9999] w-60 p-3 rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700 shadow-2xl space-y-2 animate-in fade-in zoom-in-95 duration-150">
+              <div className="absolute left-0 top-full mt-2 z-[9999] w-64 p-3 rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700 shadow-2xl space-y-2 animate-in fade-in zoom-in-95 duration-150">
                 <div className="flex items-center justify-between px-1 pb-2 border-b border-slate-100 dark:border-slate-800">
                   <span className="text-[10px] font-black text-slate-400 dark:text-slate-400 uppercase tracking-widest">
                     FILTER BY LAYER
@@ -166,22 +166,22 @@ export const AIMessageSearchResults: React.FC<AIMessageSearchResultsProps> = ({
                   </button>
                 </div>
 
-                <div className="space-y-1 max-h-56 overflow-y-auto pr-1">
+                <div className="space-y-1 max-h-56 overflow-y-auto px-1 py-0.5 scrollbar-none">
                   {LAYER_OPTIONS.map((layer) => {
                     const isChecked = selectedCategories.includes(layer.id);
                     return (
                       <div
                         key={layer.id}
                         onClick={() => toggleCategory(layer.id)}
-                        className={`flex items-center justify-between p-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                           isChecked
                             ? 'bg-blue-50/90 dark:bg-slate-800/90 text-slate-900 dark:text-white'
                             : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50'
                         }`}
                       >
-                        <div className="flex items-center gap-2.5">
+                        <div className="flex items-center gap-2.5 min-w-0">
                           <div
-                            className={`w-4 h-4 rounded-md border flex items-center justify-center transition-all ${
+                            className={`w-4 h-4 rounded-md border flex items-center justify-center transition-all shrink-0 ${
                               isChecked
                                 ? 'bg-geovision-blue border-geovision-blue text-white shadow-xs'
                                 : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800'
@@ -189,7 +189,7 @@ export const AIMessageSearchResults: React.FC<AIMessageSearchResultsProps> = ({
                           >
                             {isChecked && <Check className="w-3 h-3 stroke-[3]" />}
                           </div>
-                          <span>{language === 'ar' ? layer.labelAr : layer.labelEn}</span>
+                          <span className="truncate">{language === 'ar' ? layer.labelAr : layer.labelEn}</span>
                         </div>
                       </div>
                     );
