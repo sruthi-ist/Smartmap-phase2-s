@@ -14,8 +14,6 @@ import {
   Map,
   Home,
   ChevronDown,
-  ShieldCheck,
-  Sparkles,
 } from 'lucide-react';
 
 export const AppHeader: React.FC = () => {
@@ -59,27 +57,16 @@ export const AppHeader: React.FC = () => {
     <div className="fixed top-3 left-1/2 -translate-x-1/2 z-[500] w-[calc(100%-2rem)] max-w-7xl">
       <header className="w-full h-[60px] sm:h-[62px] glass-level-2 rounded-2xl px-3.5 sm:px-5 flex items-center justify-between shadow-xl border border-white/80 dark:border-white/10">
         
-        {/* Left: Product Logo & Branding */}
-        <div className="flex items-center gap-3 cursor-pointer" onClick={() => setCurrentView('home')}>
-          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-geovision-blue text-white font-black shadow-md shadow-blue-500/30">
-            <Sparkles className="w-5 h-5" />
-          </div>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-2">
-              <span className="text-lg font-black tracking-tight text-slate-900 dark:text-white">
-                GeoVision
-              </span>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100/80 text-geovision-blue dark:bg-blue-950/80 dark:text-blue-300">
-                <ShieldCheck className="w-3 h-3" /> DGE Abu Dhabi
-              </span>
-            </div>
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold tracking-wider uppercase">
-              Spatial Intelligence
-            </span>
-          </div>
+        {/* Left: First Logo — Department of Government Enablement */}
+        <div className="flex items-center cursor-pointer" onClick={() => setCurrentView('home')}>
+          <img
+            src="/assets/logos/dge-logo.png"
+            alt="Department of Government Enablement"
+            className="h-8 sm:h-9 object-contain dark:bg-white/90 dark:px-2 dark:py-0.5 dark:rounded-lg shrink-0 transition-transform hover:scale-105"
+          />
         </div>
 
-        {/* Center: Desktop Navigation */}
+        {/* Center: Navigation Bar */}
         <nav className="hidden md:flex items-center gap-1 glass-level-1 p-1 rounded-xl">
           <button
             onClick={() => setCurrentView('home')}
@@ -130,8 +117,8 @@ export const AppHeader: React.FC = () => {
           </button>
         </nav>
 
-        {/* Right: Controls & Profile */}
-        <div className="flex items-center gap-2">
+        {/* Right: Controls & Last Logo — Abu Dhabi Spatial Data */}
+        <div className="flex items-center gap-2 sm:gap-3">
           {/* Language Switcher */}
           <button
             onClick={toggleLanguage}
@@ -246,6 +233,17 @@ export const AppHeader: React.FC = () => {
               )}
             </div>
           )}
+
+          <div className="w-px h-6 bg-slate-300/80 dark:bg-slate-700/80 shrink-0 ml-1" />
+
+          {/* Rightmost: Last Logo — Abu Dhabi Spatial Data */}
+          <div className="flex items-center cursor-pointer" onClick={() => setCurrentView('home')}>
+            <img
+              src="/assets/logos/spatial-data-logo.png"
+              alt="Abu Dhabi Spatial Data"
+              className="h-7 sm:h-8 object-contain dark:bg-white/90 dark:px-2 dark:py-0.5 dark:rounded-lg shrink-0 transition-transform hover:scale-105"
+            />
+          </div>
         </div>
 
       </header>

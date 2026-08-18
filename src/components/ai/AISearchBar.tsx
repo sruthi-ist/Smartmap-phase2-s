@@ -100,8 +100,8 @@ export const AISearchBar: React.FC<AISearchBarProps> = ({ compact = false }) => 
 
       {/* Suggested Prompt Chips */}
       {!compact && (
-        <div className="w-full flex flex-wrap items-center justify-center gap-2 mt-1">
-          <span className="text-xs font-bold text-slate-500 dark:text-slate-400 mr-1 flex items-center gap-1">
+        <div className="w-full flex flex-wrap items-center justify-start gap-2 mt-1">
+          <span className="text-xs font-black text-slate-800 dark:text-slate-200 mr-1 flex items-center gap-1">
             <Compass className="w-3.5 h-3.5 text-geovision-blue" />
             {t('hero.suggestedLabel')}
           </span>
@@ -109,7 +109,7 @@ export const AISearchBar: React.FC<AISearchBarProps> = ({ compact = false }) => 
             <button
               key={idx}
               onClick={() => handleSuggestedClick(key)}
-              className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-blue-50/80 dark:bg-slate-800/90 text-geovision-blue dark:text-blue-300 border border-blue-200/60 dark:border-slate-700 hover:border-geovision-blue hover:bg-geovision-blue hover:text-white dark:hover:bg-geovision-blue dark:hover:text-white shadow-2xs transition-all transform hover:-translate-y-0.5"
+              className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-white/95 dark:bg-slate-900/95 text-geovision-blue dark:text-blue-300 border border-blue-200 dark:border-slate-700 hover:border-geovision-blue hover:bg-geovision-blue hover:text-white dark:hover:bg-geovision-blue dark:hover:text-white shadow-xs transition-all transform hover:-translate-y-0.5 backdrop-blur-md cursor-pointer"
             >
               {t(key)}
             </button>

@@ -1,9 +1,9 @@
 import React from 'react';
 import { useAppState } from '../../context/AppStateContext';
-import { X, UserCheck, Sparkles } from 'lucide-react';
+import { X, UserCheck } from 'lucide-react';
 
 export const GuestPromptModal: React.FC = () => {
-  const { guestPromptOpen, setGuestPromptOpen, setLoginModalOpen } = useAppState();
+  const { guestPromptOpen, setGuestPromptOpen, setLoginModalOpen, language } = useAppState();
 
   if (!guestPromptOpen) return null;
 
@@ -11,23 +11,38 @@ export const GuestPromptModal: React.FC = () => {
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md animate-fade-in">
       <div className="relative w-full max-w-md glass-level-3 rounded-3xl p-6 sm:p-8 shadow-2xl border border-white/80 dark:border-white/10 text-center space-y-5 glow-blue-lg">
         
+        {/* Close Button */}
         <button
           onClick={() => setGuestPromptOpen(false)}
-          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          className="absolute top-4 right-4 z-10 p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
 
-        <div className="mx-auto w-14 h-14 rounded-2xl bg-geovision-blue text-white flex items-center justify-center font-black shadow-lg shadow-blue-500/30">
-          <Sparkles className="w-7 h-7" />
+        {/* Modal Top Header Row featuring both official logos */}
+        <div className="flex items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4 pr-8 rtl:pl-8 rtl:pr-0">
+          <img
+            src="/assets/logos/dge-logo.png"
+            alt="Department of Government Enablement"
+            className="h-8 sm:h-9 object-contain dark:bg-white/90 dark:px-2 dark:py-0.5 dark:rounded-lg shrink-0"
+          />
+          <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 shrink-0" />
+          <img
+            src="/assets/logos/spatial-data-logo.png"
+            alt="Abu Dhabi Spatial Data"
+            className="h-7 sm:h-8 object-contain dark:bg-white/90 dark:px-2 dark:py-0.5 dark:rounded-lg shrink-0"
+          />
         </div>
 
+        {/* Title & Subtitle */}
         <div className="space-y-2">
           <h2 className="text-xl font-black text-slate-900 dark:text-white">
-            Save Your GeoVision Discoveries
+            {language === 'ar' ? 'حفظ اكتشافاتك في GeoVision' : 'Save Your GeoVision Discoveries'}
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-semibold">
-            Sign in to save your spatial locations, dataset layer states, and conversation history across devices.
+            {language === 'ar'
+              ? 'قم بتسجيل الدخول لحفظ المواقع المكانية وطبقات الخريطة والمحادثات عبر أجهزتك'
+              : 'Sign in to save your spatial locations, dataset layer states, and conversation history across devices.'}
           </p>
         </div>
 
@@ -37,17 +52,17 @@ export const GuestPromptModal: React.FC = () => {
               setGuestPromptOpen(false);
               setLoginModalOpen(true);
             }}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-geovision-blue text-white text-xs font-black hover:bg-blue-600 shadow-xl shadow-blue-500/30 transition-all"
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-geovision-blue text-white text-xs font-black hover:bg-blue-600 shadow-xl shadow-blue-500/30 transition-all cursor-pointer"
           >
             <UserCheck className="w-4 h-4" />
-            Sign In / Register Account
+            <span>{language === 'ar' ? 'تسجيل الدخول / إنشاء حساب' : 'Sign In / Register Account'}</span>
           </button>
 
           <button
             onClick={() => setGuestPromptOpen(false)}
-            className="w-full py-2.5 rounded-xl border border-white/70 dark:border-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors glass-level-1"
+            className="w-full py-2.5 rounded-xl border border-white/70 dark:border-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors glass-level-1 cursor-pointer"
           >
-            Continue as Guest
+            {language === 'ar' ? 'المتابعة كزائر' : 'Continue as Guest'}
           </button>
         </div>
 
@@ -55,3 +70,5 @@ export const GuestPromptModal: React.FC = () => {
     </div>
   );
 };
+
+export default GuestPromptModal;
