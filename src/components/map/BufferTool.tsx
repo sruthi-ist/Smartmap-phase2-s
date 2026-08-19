@@ -31,7 +31,7 @@ export const BufferTool: React.FC = () => {
   };
 
   return (
-    <div className="absolute top-20 right-22 rtl:right-auto rtl:left-22 z-[600] w-80 sm:w-96 glass-level-3 rounded-3xl p-5 shadow-2xl border border-white/80 dark:border-slate-800 animate-fade-in space-y-4 glow-blue">
+    <div className="absolute top-20 left-18 sm:left-20 rtl:left-auto rtl:right-18 sm:rtl:right-20 z-[600] w-80 sm:w-96 glass-level-3 rounded-3xl p-5 shadow-2xl border border-white/80 dark:border-slate-800 animate-fade-in space-y-4 glow-blue">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
         <div className="flex items-center gap-2">

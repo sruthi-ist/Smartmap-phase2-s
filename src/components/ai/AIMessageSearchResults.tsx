@@ -1,11 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import type { GeoFeature } from '../../types';
+import { useAppState } from '../../context/AppStateContext';
 import {
   ChevronDown,
   Check,
   Building,
   MapPin,
-  Star,
+  Search,
+  Layers,
+  ZoomIn,
+  Info,
 } from 'lucide-react';
 
 interface AIMessageSearchResultsProps {
@@ -30,6 +34,8 @@ export const AIMessageSearchResults: React.FC<AIMessageSearchResultsProps> = ({
   setSelectedFeature,
   language,
 }) => {
+  const { setMapCenterAndZoom, setCurrentView, currentView, showToast } = useAppState();
+
   const [selectedCategories, setSelectedCategories] = useState<string[]>([
     'education',
     'healthcare',
@@ -44,6 +50,8 @@ export const AIMessageSearchResults: React.FC<AIMessageSearchResultsProps> = ({
   const [selectedType, setSelectedType] = useState<'all' | 'private' | 'public'>('all');
   const [layerMenuOpen, setLayerMenuOpen] = useState(false);
   const [typeMenuOpen, setTypeMenuOpen] = useState(false);
+  const [searchFilter, setSearchFilter] = useState('');
+  const [visibleCount, setVisibleCount] = useState(5);
 
   const layerRef = useRef<HTMLDivElement>(null);
   const typeRef = useRef<HTMLDivElement>(null);
@@ -93,13 +101,23 @@ export const AIMessageSearchResults: React.FC<AIMessageSearchResultsProps> = ({
     if (selectedType === 'private' && !isPriv) return false;
     if (selectedType === 'public' && isPriv) return false;
 
+    // 3. Keyword Search Filter inside results
+    if (searchFilter.trim()) {
+      const q = searchFilter.toLowerCase();
+      const matchName = (feat.nameEn || '').toLowerCase().includes(q) || (feat.nameAr || '').includes(q);
+      const matchSub = (feat.subcategory || '').toLowerCase().includes(q);
+      if (!matchName && !matchSub) return false;
+    }
+
     return true;
   });
 
   const getLayerButtonLabel = () => {
-    if (selectedCategories.length === LAYER_OPTIONS.length) return 'All Layers';
-    if (selectedCategories.length === 0) return 'None';
-    return `${selectedCategories.length} Selected`;
+    if (selectedCategories.length === LAYER_OPTIONS.length) {
+      return language === 'ar' ? 'جميع الفئات' : 'All Categories';
+    }
+    if (selectedCategories.length === 0) return language === 'ar' ? 'لا يوجد' : 'None';
+    return `${selectedCategories.length} ${language === 'ar' ? 'محدد' : 'Selected'}`;
   };
 
   const getTypeButtonLabel = () => {
@@ -110,176 +128,194 @@ export const AIMessageSearchResults: React.FC<AIMessageSearchResultsProps> = ({
 
   const isLayerActive = selectedCategories.length < LAYER_OPTIONS.length;
   const isTypeActive = selectedType !== 'all';
+  const displayedFeatures = filteredFeatures.slice(0, visibleCount);
+  const isHighVolume = features.length >= 100 || filteredFeatures.length > 20;
 
   return (
-    <div className="mt-3.5 space-y-3 pt-2.5 border-t border-slate-200/80 dark:border-slate-700/80">
+    <div className="mt-3.5 space-y-2.5 pt-3 border-t border-slate-200/80 dark:border-slate-700/80">
       
-      {/* Header with Search Results Count & Filter Dropdowns */}
+      {/* High-Volume Results Header Banner (> 100 results handling) */}
+      {isHighVolume && (
+        <div className="p-2.5 rounded-xl bg-blue-50/90 dark:bg-slate-900 border border-blue-200/80 dark:border-slate-700 flex items-center justify-between gap-2 text-[11px] font-extrabold text-geovision-blue dark:text-blue-300">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <Layers className="w-4 h-4 shrink-0 text-geovision-blue" />
+            <span className="truncate">
+              {language === 'ar'
+                ? `عالية الكثافة: تم العثور على ${features.length} نتيجة مكانية`
+                : `High-Density Layer: ${features.length}+ spatial items found`}
+            </span>
+          </div>
+          <span className="px-2 py-0.5 rounded-md bg-geovision-blue text-white text-[10px] font-black shrink-0 shadow-2xs">
+            {language === 'ar' ? `عرض ${displayedFeatures.length}` : `Top ${displayedFeatures.length}`}
+          </span>
+        </div>
+      )}
+
+      {/* Row 1: Search Results Title & Quick Search Input */}
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white flex items-center gap-1.5">
-          Search Results ({filteredFeatures.length})
+        <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white">
+          {language === 'ar' ? 'نتائج البحث' : 'Search Results'} ({filteredFeatures.length})
         </h4>
 
-        {/* Filter Dropdown Controls */}
-        <div className="flex items-center gap-2">
-          
-          {/* 1. LAYER FILTER DROPDOWN CONTAINER */}
-          <div className="relative" ref={layerRef}>
-            <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400">
-              <span>Layer:</span>
-              <button
-                type="button"
-                onClick={() => {
-                  setLayerMenuOpen(!layerMenuOpen);
-                  setTypeMenuOpen(false);
-                }}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold transition-all cursor-pointer shadow-2xs ${
-                  layerMenuOpen || isLayerActive
-                    ? 'bg-geovision-blue text-white shadow-md shadow-blue-500/25 ring-2 ring-blue-400/20'
-                    : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200/90 dark:border-slate-700 hover:border-geovision-blue'
-                }`}
-              >
-                <span>{getLayerButtonLabel()}</span>
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${layerMenuOpen ? 'rotate-180' : ''}`} />
-              </button>
-            </div>
-
-            {/* Layer Checkbox Popup Menu */}
-            {layerMenuOpen && (
-              <div className="absolute left-0 top-full mt-2 z-[9999] w-64 p-3 rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700 shadow-2xl space-y-2 animate-in fade-in zoom-in-95 duration-150">
-                <div className="flex items-center justify-between px-1 pb-2 border-b border-slate-100 dark:border-slate-800">
-                  <span className="text-[10px] font-black text-slate-400 dark:text-slate-400 uppercase tracking-widest">
-                    FILTER BY LAYER
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setSelectedCategories(
-                        selectedCategories.length === LAYER_OPTIONS.length
-                          ? []
-                          : LAYER_OPTIONS.map(l => l.id)
-                      )
-                    }
-                    className="text-[11px] font-extrabold text-geovision-blue hover:underline cursor-pointer lowercase"
-                  >
-                    {selectedCategories.length === LAYER_OPTIONS.length ? 'clear' : 'select all'}
-                  </button>
-                </div>
-
-                <div className="space-y-1 max-h-56 overflow-y-auto px-1 py-0.5 scrollbar-none">
-                  {LAYER_OPTIONS.map((layer) => {
-                    const isChecked = selectedCategories.includes(layer.id);
-                    return (
-                      <div
-                        key={layer.id}
-                        onClick={() => toggleCategory(layer.id)}
-                        className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                          isChecked
-                            ? 'bg-blue-50/90 dark:bg-slate-800/90 text-slate-900 dark:text-white'
-                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <div
-                            className={`w-4 h-4 rounded-md border flex items-center justify-center transition-all shrink-0 ${
-                              isChecked
-                                ? 'bg-geovision-blue border-geovision-blue text-white shadow-xs'
-                                : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800'
-                            }`}
-                          >
-                            {isChecked && <Check className="w-3 h-3 stroke-[3]" />}
-                          </div>
-                          <span className="truncate">{language === 'ar' ? layer.labelAr : layer.labelEn}</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+        {/* Quick Filter Input Box for High Volume Results */}
+        {filteredFeatures.length > 5 && (
+          <div className="relative flex-1 max-w-[170px]">
+            <Search className="w-3 h-3 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 rtl:right-2.5 rtl:left-auto" />
+            <input
+              type="text"
+              value={searchFilter}
+              onChange={(e) => setSearchFilter(e.target.value)}
+              placeholder={language === 'ar' ? 'تصفية النتائج...' : 'Filter results...'}
+              className="w-full pl-7 pr-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-[11px] font-bold text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-1 focus:ring-geovision-blue placeholder:text-slate-400 rtl:pr-7 rtl:pl-2.5"
+            />
           </div>
-
-          {/* 2. TYPE FILTER DROPDOWN CONTAINER */}
-          <div className="relative" ref={typeRef}>
-            <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400">
-              <span>Type:</span>
-              <button
-                type="button"
-                onClick={() => {
-                  setTypeMenuOpen(!typeMenuOpen);
-                  setLayerMenuOpen(false);
-                }}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold transition-all cursor-pointer shadow-2xs ${
-                  typeMenuOpen || isTypeActive
-                    ? 'bg-geovision-blue text-white shadow-md shadow-blue-500/25 ring-2 ring-blue-400/20'
-                    : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200/90 dark:border-slate-700 hover:border-geovision-blue'
-                }`}
-              >
-                <span>{getTypeButtonLabel()}</span>
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${typeMenuOpen ? 'rotate-180' : ''}`} />
-              </button>
-            </div>
-
-            {/* Type Options Popup Menu */}
-            {typeMenuOpen && (
-              <div className="absolute right-0 top-full mt-2 z-[9999] w-48 p-1.5 rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700 shadow-2xl space-y-1 animate-in fade-in zoom-in-95 duration-150">
-                {[
-                  { id: 'all', label: 'All Types' },
-                  { id: 'private', label: 'Private' },
-                  { id: 'public', label: 'Public / Government' },
-                ].map((opt) => {
-                  const isSel = selectedType === opt.id;
-                  return (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() => {
-                        setSelectedType(opt.id as any);
-                        setTypeMenuOpen(false);
-                      }}
-                      className={`w-full text-left rtl:text-right px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                        isSel
-                          ? 'bg-geovision-blue text-white shadow-md shadow-blue-500/25 font-black'
-                          : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 font-bold'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-        </div>
+        )}
       </div>
 
-      {/* Feature Cards List */}
+      {/* Row 2: Filter Controls */}
+      <div className="flex flex-wrap items-center gap-3 py-1.5 px-2.5 rounded-xl bg-slate-50/80 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
+        
+        {/* 1. CATEGORY FILTER */}
+        <div className="relative flex items-center gap-1.5" ref={layerRef}>
+          <div className="flex items-center gap-1 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+            <span className="shrink-0">{language === 'ar' ? 'الفئة:' : 'Category:'}</span>
+            <button
+              type="button"
+              onClick={() => {
+                setLayerMenuOpen(!layerMenuOpen);
+                setTypeMenuOpen(false);
+              }}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-extrabold whitespace-nowrap transition-all cursor-pointer shadow-2xs shrink-0 ${
+                layerMenuOpen || isLayerActive
+                  ? 'bg-geovision-blue text-white shadow-md shadow-blue-500/25 ring-2 ring-blue-400/20'
+                  : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200/90 dark:border-slate-700 hover:border-geovision-blue'
+              }`}
+            >
+              <span>{getLayerButtonLabel()}</span>
+              <ChevronDown className={`w-3 h-3 transition-transform ${layerMenuOpen ? 'rotate-180' : ''}`} />
+            </button>
+          </div>
+
+          {/* Layer Menu Dropdown */}
+          {layerMenuOpen && (
+            <div className="absolute top-full left-0 mt-1.5 w-48 p-2 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-xl z-50 space-y-1 text-left rtl:text-right">
+              <div className="px-2 py-1 text-[10px] font-black text-slate-400 uppercase tracking-wider">
+                {language === 'ar' ? 'تصفية حسب الفئة' : 'Filter by Category'}
+              </div>
+
+              {LAYER_OPTIONS.map((opt) => {
+                const isSelected = selectedCategories.includes(opt.id);
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => toggleCategory(opt.id)}
+                    className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-blue-50 dark:bg-slate-800 text-geovision-blue dark:text-blue-300 font-extrabold'
+                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60'
+                    }`}
+                  >
+                    <span>{language === 'ar' ? opt.labelAr : opt.labelEn}</span>
+                    {isSelected && <Check className="w-3.5 h-3.5 text-geovision-blue shrink-0" />}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* 2. TYPE FILTER */}
+        <div className="relative flex items-center gap-1.5" ref={typeRef}>
+          <div className="flex items-center gap-1 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+            <span className="shrink-0">{language === 'ar' ? 'النوع:' : 'Type:'}</span>
+            <button
+              type="button"
+              onClick={() => {
+                setTypeMenuOpen(!typeMenuOpen);
+                setLayerMenuOpen(false);
+              }}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-extrabold whitespace-nowrap transition-all cursor-pointer shadow-2xs shrink-0 ${
+                typeMenuOpen || isTypeActive
+                  ? 'bg-geovision-blue text-white shadow-md shadow-blue-500/25 ring-2 ring-blue-400/20'
+                  : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200/90 dark:border-slate-700 hover:border-geovision-blue'
+              }`}
+            >
+              <span>{getTypeButtonLabel()}</span>
+              <ChevronDown className={`w-3 h-3 transition-transform ${typeMenuOpen ? 'rotate-180' : ''}`} />
+            </button>
+          </div>
+
+          {/* Type Menu Dropdown */}
+          {typeMenuOpen && (
+            <div className="absolute top-full left-0 mt-1.5 w-44 p-2 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-xl z-50 space-y-1">
+              <div className="px-2 py-1 text-[10px] font-black text-slate-400 uppercase tracking-wider">
+                {language === 'ar' ? 'تصفية النوع' : 'Filter Type'}
+              </div>
+
+              {[
+                { id: 'all', label: 'All Types' },
+                { id: 'private', label: 'Private' },
+                { id: 'public', label: 'Public / Government' },
+              ].map((opt) => {
+                const isSel = selectedType === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedType(opt.id as any);
+                      setTypeMenuOpen(false);
+                    }}
+                    className={`w-full text-left rtl:text-right px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      isSel
+                        ? 'bg-geovision-blue text-white shadow-md shadow-blue-500/25 font-black'
+                        : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 font-bold'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+      </div>
+
+      {/* Feature Cards List with Action Icons (Info & Zoom In) */}
       {filteredFeatures.length === 0 ? (
         <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200/60 dark:border-slate-800 text-center text-xs text-slate-400 font-bold">
-          No spatial matches found for selected layer/type filter.
+          {language === 'ar' ? 'لا توجد نتائج مطابقة للتصفية المختارة.' : 'No spatial matches found for selected category/type filter.'}
         </div>
       ) : (
-        <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-          {filteredFeatures.map((feat) => {
+        <div className="space-y-2 max-h-64 overflow-y-auto pr-2.5 scrollbar-none">
+          {displayedFeatures.map((feat) => {
             const isPriv = isFeaturePrivate(feat);
             return (
               <div
                 key={feat.id}
-                onClick={() => setSelectedFeature(feat)}
-                className="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700/80 hover:border-geovision-blue dark:hover:border-geovision-blue cursor-pointer transition-all flex items-center justify-between shadow-2xs hover:shadow-md"
+                onClick={() => {
+                  setSelectedFeature(feat);
+                  setMapCenterAndZoom([feat.lat, feat.lng], 16);
+                }}
+                className="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700/80 hover:border-geovision-blue dark:hover:border-geovision-blue cursor-pointer transition-all flex items-center justify-between gap-3 shadow-2xs hover:shadow-md overflow-hidden group"
               >
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-geovision-blue flex items-center justify-center font-bold shrink-0">
-                    <Building className="w-4 h-4" />
+                {/* Left side: Icon & Title/Details */}
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  {/* Building Icon */}
+                  <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-geovision-blue flex items-center justify-center font-bold shrink-0 group-hover:bg-geovision-blue group-hover:text-white transition-colors">
+                    <Building className="w-4.5 h-4.5" />
                   </div>
-                  <div>
+
+                  {/* Main Content */}
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <p className="text-xs font-black text-slate-900 dark:text-white truncate max-w-[160px]">
+                      <h5 className="text-xs font-black text-slate-900 dark:text-white truncate">
                         {language === 'ar' ? feat.nameAr : feat.nameEn}
-                      </p>
+                      </h5>
                       <span
-                        className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                        className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shrink-0 ${
                           isPriv
                             ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/80 dark:text-purple-300'
                             : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300'
@@ -289,22 +325,84 @@ export const AIMessageSearchResults: React.FC<AIMessageSearchResultsProps> = ({
                       </span>
                     </div>
 
-                    <p className="text-[10px] text-slate-400 flex items-center gap-1 font-semibold mt-0.5">
-                      <MapPin className="w-2.5 h-2.5 text-geovision-blue" />
-                      {feat.subcategory} • {feat.distanceKm || 1.5} km radius
-                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <p className="text-[10px] text-slate-400 flex items-center gap-1 font-semibold truncate">
+                        <MapPin className="w-3 h-3 text-geovision-blue shrink-0" />
+                        <span className="truncate">{feat.subcategory} • {feat.distanceKm || 1.5} km</span>
+                      </p>
+                    </div>
                   </div>
                 </div>
 
-                {feat.rating && (
-                  <div className="flex items-center gap-1 text-[11px] font-bold text-amber-500 shrink-0">
-                    <Star className="w-3.5 h-3.5 fill-amber-400" />
-                    <span>{feat.rating}</span>
-                  </div>
-                )}
+                {/* Right side: Interactive Action Icons (Zoom In & Info) */}
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {/* Zoom In Button */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setMapCenterAndZoom([feat.lat, feat.lng], 16);
+                      if (currentView !== 'map') setCurrentView('map');
+                      showToast(language === 'ar' ? `التركيز على ${feat.nameAr}` : `Zoomed to ${feat.nameEn}`);
+                    }}
+                    className="p-1.5 sm:p-2 rounded-xl bg-blue-50 dark:bg-slate-800 text-geovision-blue dark:text-blue-300 hover:bg-geovision-blue hover:text-white transition-all cursor-pointer shadow-2xs"
+                    title={language === 'ar' ? 'تكبير الخريطة على هذا الموقع' : 'Zoom in to location on map'}
+                  >
+                    <ZoomIn className="w-3.5 h-3.5" />
+                  </button>
+
+                  {/* Info Button */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedFeature(feat);
+                      if (currentView !== 'map') setCurrentView('map');
+                    }}
+                    className="p-1.5 sm:p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-geovision-blue hover:text-white transition-all cursor-pointer shadow-2xs"
+                    title={language === 'ar' ? 'عرض التفاصيل الجغرافية' : 'View feature details'}
+                  >
+                    <Info className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Pagination & View All Controls for High Volume Results */}
+      {filteredFeatures.length > visibleCount && (
+        <div className="pt-2 flex items-center justify-between gap-2">
+          <button
+            type="button"
+            onClick={() => setVisibleCount(prev => prev + 5)}
+            className="flex-1 py-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-geovision-blue hover:text-white text-slate-700 dark:text-slate-200 font-extrabold text-xs transition-all cursor-pointer text-center shadow-2xs"
+          >
+            {language === 'ar'
+              ? `عرض المزيد (+5 من أصل ${filteredFeatures.length})`
+              : `Show Next 5 (of ${filteredFeatures.length})`}
+          </button>
+          
+          <button
+            type="button"
+            onClick={() => setVisibleCount(filteredFeatures.length)}
+            className="py-2 px-3 rounded-xl bg-geovision-blue text-white hover:bg-blue-600 font-extrabold text-xs transition-all cursor-pointer text-center shrink-0 shadow-md shadow-blue-500/20"
+          >
+            {language === 'ar' ? `عرض الكل (${filteredFeatures.length})` : `View All (${filteredFeatures.length})`}
+          </button>
+        </div>
+      )}
+
+      {visibleCount > 5 && visibleCount >= filteredFeatures.length && (
+        <div className="pt-1 text-center">
+          <button
+            type="button"
+            onClick={() => setVisibleCount(5)}
+            className="text-[11px] font-bold text-slate-400 hover:text-geovision-blue transition-colors cursor-pointer"
+          >
+            {language === 'ar' ? 'طي القائمة (عرض أول 5)' : 'Collapse list (Show top 5)'}
+          </button>
         </div>
       )}
 

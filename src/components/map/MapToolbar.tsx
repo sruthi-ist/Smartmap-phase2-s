@@ -8,7 +8,7 @@ import {
   Minus,
   Home,
   Crosshair,
-  Compass,
+  Navigation,
   MousePointer2,
 } from 'lucide-react';
 
@@ -16,6 +16,7 @@ export const MapToolbar: React.FC = () => {
   const {
     activeTool,
     setActiveTool,
+    setFilterDrawerOpen,
     mapCenter,
     mapZoom,
     setMapCenterAndZoom,
@@ -23,14 +24,17 @@ export const MapToolbar: React.FC = () => {
   } = useAppState();
 
   const handleDrawToggle = () => {
+    setFilterDrawerOpen(false);
     setActiveTool(activeTool === 'sketch' ? 'none' : 'sketch');
   };
 
   const handleBasemapToggle = () => {
+    setFilterDrawerOpen(false);
     setActiveTool(activeTool === 'basemap' ? 'none' : 'basemap');
   };
 
   const handleLegendToggle = () => {
+    setFilterDrawerOpen(false);
     setActiveTool(activeTool === 'legend' ? 'none' : 'legend');
   };
 
@@ -64,6 +68,7 @@ export const MapToolbar: React.FC = () => {
   };
 
   const handleSelectToggle = () => {
+    setFilterDrawerOpen(false);
     setActiveTool(activeTool === 'identify' ? 'none' : 'identify');
   };
 
@@ -75,22 +80,23 @@ export const MapToolbar: React.FC = () => {
   };
 
   return (
-    <div className="absolute top-16 sm:top-20 right-4 rtl:right-auto rtl:left-4 z-[600] flex flex-col gap-2 items-center">
-      
-      {/* Top Capsule: Draw, Basemap, Legend */}
-      <div className="glass-level-3 bg-white/85 dark:bg-slate-900/90 backdrop-blur-xl p-1 rounded-2xl shadow-xl border border-white/80 dark:border-slate-700/80 flex flex-col items-center gap-1 w-12 sm:w-13">
+    <>
+      <div className="absolute top-16 sm:top-20 left-3 sm:left-4 rtl:left-auto rtl:right-3 sm:rtl:right-4 z-[600] flex flex-col gap-2 items-center">
         
-        {/* Draw */}
-        <button
-          onClick={handleDrawToggle}
-          className={`w-full py-1.5 px-0.5 rounded-xl flex flex-col items-center gap-0.5 transition-all cursor-pointer ${getToolBtnStyle(
-            activeTool === 'sketch'
-          )}`}
-          title="Draw AOI Polygon"
-        >
-          <Pencil className="w-4 h-4 stroke-[2]" />
-          <span className="text-[8px] font-extrabold tracking-tight leading-none">Draw</span>
-        </button>
+        {/* Top Capsule: Draw, Basemap, Legend */}
+        <div className="glass-level-3 bg-white/85 dark:bg-slate-900/90 backdrop-blur-xl p-1 rounded-2xl shadow-xl border border-white/80 dark:border-slate-700/80 flex flex-col items-center gap-1 w-12 sm:w-13">
+          
+          {/* Draw */}
+          <button
+            onClick={handleDrawToggle}
+            className={`w-full py-1.5 px-0.5 rounded-xl flex flex-col items-center gap-0.5 transition-all cursor-pointer ${getToolBtnStyle(
+              activeTool === 'sketch'
+            )}`}
+            title="Draw AOI Polygon"
+          >
+            <Pencil className="w-4 h-4 stroke-[2]" />
+            <span className="text-[8px] font-extrabold tracking-tight leading-none">Draw</span>
+          </button>
 
         {/* Basemap */}
         <button
@@ -165,7 +171,7 @@ export const MapToolbar: React.FC = () => {
           className="w-full py-1 px-0.5 rounded-xl flex flex-col items-center gap-0.5 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-geovision-blue transition-all cursor-pointer"
           title="Map Orientation (North)"
         >
-          <Compass className="w-3.5 h-3.5 stroke-[2]" />
+          <Navigation className="w-3.5 h-3.5 stroke-[2]" />
           <span className="text-[8px] font-bold tracking-tight leading-none">Compass</span>
         </button>
 
@@ -187,5 +193,6 @@ export const MapToolbar: React.FC = () => {
       </div>
 
     </div>
+    </>
   );
 };

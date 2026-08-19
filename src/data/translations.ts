@@ -53,7 +53,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'map.searchModeAI': 'Ask GeoVision AI',
     'map.searchModeLoc': 'Find Location',
     'map.locPlaceholder': 'Search Abu Dhabi location, district, or landmark...',
-    'map.authoritativeBadge': 'Authoritative GIS Data',
+    'map.authoritativeBadge': 'Open GIS Data',
     'map.externalBadge': 'External Information — Not Authenticated',
 
     // Map Tools
@@ -122,7 +122,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'ai.understanding': 'Understanding request...',
     'ai.querying': 'Querying spatial data...',
     'ai.updatingMap': 'Updating map layers...',
-    'ai.inputPlaceholder': 'Ask follow-up question (e.g. Which ones are close to schools?)...',
+    'ai.inputPlaceholder': 'Ask question...',
     'ai.recommendationsTitle': 'You may also want to explore:',
     'ai.interpretationLine': 'GeoVision understood:',
 
@@ -238,7 +238,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'map.searchModeAI': 'سؤال GeoVision AI',
     'map.searchModeLoc': 'البحث عن موقع',
     'map.locPlaceholder': 'ابحث عن منطقة، حي، أو معلم في أبوظبي...',
-    'map.authoritativeBadge': 'بيانات جغرافية موثوقة (رسمية)',
+    'map.authoritativeBadge': 'بيانات جغرافية مفتوحة',
     'map.externalBadge': 'معلومات خارجية — غير موثقة',
 
     // Map Tools
@@ -307,7 +307,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'ai.understanding': 'فهم طلبك المكانية...',
     'ai.querying': 'استعلام البيانات الجغرافية...',
     'ai.updatingMap': 'تحديث طبقات الخريطة...',
-    'ai.inputPlaceholder': 'اسأل سؤالاً متابعاً (مثال: أيهما قريب من المدارس؟)...',
+    'ai.inputPlaceholder': 'اسأل سؤالاً...',
     'ai.recommendationsTitle': 'قد ترغب أيضاً في استكشاف:',
     'ai.interpretationLine': 'فهم GeoVision الطلب كالتالي:',
 

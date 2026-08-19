@@ -28,20 +28,25 @@ export const MapCategoryDock: React.FC = () => {
           
           {/* Fixed Section: Checklist & Plus Action Buttons */}
           <div className="flex items-center gap-1.5 shrink-0">
-            {/* Checklist Trigger Button */}
+            {/* Explore Trigger Button (Renamed from Checklist) */}
             <button
               onClick={() => setChecklistOpen(true)}
               className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-geovision-blue text-white shadow-md shadow-blue-500/25 hover:bg-blue-600 active:scale-95 transition-all shrink-0 cursor-pointer"
+              title="Explore Datasets & Categories"
             >
               <Filter className="w-3.5 h-3.5" />
-              <span>Checklist ({selectedSubcategoryIds.length})</span>
+              <span>
+                {language === 'ar'
+                  ? `استكشاف (${selectedSubcategoryIds.length})`
+                  : `Explore (${selectedSubcategoryIds.length})`}
+              </span>
             </button>
 
             {/* Plus / More Categories Button */}
             <button
               onClick={() => setChecklistOpen(true)}
               className="p-1.5 rounded-full text-slate-600 dark:text-slate-200 hover:text-geovision-blue hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0 cursor-pointer"
-              title="Open Category Checklist"
+              title="Explore Category Checklist"
             >
               <Plus className="w-4 h-4" />
             </button>

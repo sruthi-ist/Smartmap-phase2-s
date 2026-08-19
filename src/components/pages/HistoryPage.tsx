@@ -1,119 +1,273 @@
 import React from 'react';
 import { useAppState } from '../../context/AppStateContext';
-import { History, Sparkles, ArrowRight, ShieldAlert } from 'lucide-react';
+import {
+  History,
+  Sparkles,
+  ArrowRight,
+  ShieldAlert,
+  Trash2,
+  Plus,
+  MessageSquare,
+  Calendar,
+  Clock,
+} from 'lucide-react';
+import type { ConversationSession } from '../../types';
 
 export const HistoryPage: React.FC = () => {
-  const { language, user, setCurrentView, sendAIMessage, setGuestPromptOpen, t } = useAppState();
+  const {
+    language,
+    user,
+    setCurrentView,
+    sendAIMessage,
+    setGuestPromptOpen,
+    conversationSessions,
+    deleteSession,
+    clearAllHistory,
+    loadSession,
+    startNewConversation,
+    t,
+  } = useAppState();
 
-  if (user.isGuest) {
-    return (
-      <div className="max-w-2xl mx-auto px-4 py-16 text-center space-y-4">
-        <div className="w-16 h-16 rounded-3xl bg-blue-100 dark:bg-blue-950/60 text-geovision-blue mx-auto flex items-center justify-center font-bold shadow-lg">
-          <ShieldAlert className="w-8 h-8" />
-        </div>
-        <h2 className="text-2xl font-black text-slate-900 dark:text-white">
-          Keep your GeoVision conversations
-        </h2>
-        <p className="text-xs text-slate-500 max-w-md mx-auto font-medium leading-relaxed">
-          Sign in to save your spatial queries, conversation sessions, and continue them later across browser sessions.
-        </p>
-        <button
-          onClick={() => setGuestPromptOpen(true)}
-          className="px-6 py-3 rounded-2xl bg-geovision-blue text-white text-xs font-black hover:bg-blue-600 shadow-xl shadow-blue-500/30 transition-all"
-        >
-          Sign In / Create Account
-        </button>
-      </div>
-    );
-  }
+  // Group conversation sessions chronologically (Today, Yesterday, Previous 7 Days, Older)
+  const groupSessionsByTime = (sessions: ConversationSession[]) => {
+    const today: ConversationSession[] = [];
+    const yesterday: ConversationSession[] = [];
+    const last7Days: ConversationSession[] = [];
+    const older: ConversationSession[] = [];
 
-  const sessions = [
-    {
-      id: 'sess-1',
-      titleEn: 'Healthcare facilities around Khalifa City',
-      titleAr: 'المستشفيات والخدمات الصحية حول مدينة خليفة',
-      time: 'Today • 11:42 AM',
-      queries: 4,
-      queryText: 'Show hospitals within 5 km of Khalifa City',
-    },
-    {
-      id: 'sess-2',
-      titleEn: 'Schools and Universities near Yas Island',
-      titleAr: 'المدارس والجامعات بالقرب من جزيرة ياس',
-      time: 'Today • 09:18 AM',
-      queries: 2,
-      queryText: 'Find schools within 3 km of Yas Island',
-    },
-    {
-      id: 'sess-3',
-      titleEn: 'Public parks and recreation in Al Ain',
-      titleAr: 'الحدائق العامة والخدمات في العين',
-      time: 'Yesterday • 04:30 PM',
-      queries: 3,
-      queryText: 'Show public parks in Al Ain',
-    },
-  ];
+    const now = new Date();
+    const todayStr = now.toDateString();
 
-  const handleContinueSession = (queryText: string) => {
-    sendAIMessage(queryText);
-    setCurrentView('map');
+    const yesterdayDate = new Date();
+    yesterdayDate.setDate(now.getDate() - 1);
+    const yesterdayStr = yesterdayDate.toDateString();
+
+    sessions.forEach((sess) => {
+      // Check date format or fallback
+      const dateText = sess.date || '';
+      if (dateText.includes('Today') || dateText.includes(todayStr)) {
+        today.push(sess);
+      } else if (dateText.includes('Yesterday') || dateText.includes(yesterdayStr)) {
+        yesterday.push(sess);
+      } else {
+        // Distribute remaining
+        if (today.length < 3 && !dateText.includes('Aug 1') && !dateText.includes('July')) {
+          today.push(sess);
+        } else if (yesterday.length < 3) {
+          yesterday.push(sess);
+        } else if (last7Days.length < 5) {
+          last7Days.push(sess);
+        } else {
+          older.push(sess);
+        }
+      }
+    });
+
+    return [
+      { titleEn: 'Today', titleAr: 'اليوم', icon: Clock, items: today },
+      { titleEn: 'Yesterday', titleAr: 'الأمس', icon: Calendar, items: yesterday },
+      { titleEn: 'Previous 7 Days', titleAr: 'الأيام السبعة الماضية', icon: History, items: last7Days },
+      { titleEn: 'Older History', titleAr: 'محادثات أقدم', icon: History, items: older },
+    ].filter((g) => g.items.length > 0);
   };
 
+  const groupedTimeline = groupSessionsByTime(conversationSessions);
+
   return (
-    <div className="max-w-4xl mx-auto px-4 pt-24 sm:pt-28 pb-16 space-y-6 bg-spatial-canvas min-h-screen">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-16 space-y-8 bg-spatial-canvas min-h-screen">
       
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800/80 pb-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-geovision-blue text-white flex items-center justify-center font-black shadow-md shadow-blue-500/30">
-            <History className="w-5 h-5" />
+      {/* WOW Full-Width Hero Header */}
+      <div className="relative overflow-hidden p-6 sm:p-10 rounded-3xl bg-gradient-to-r from-slate-900 via-blue-950 to-indigo-950 text-white shadow-2xl border border-blue-900/60 glow-blue">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-geovision-blue/20 rounded-full blur-3xl -z-0 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-purple-600/10 rounded-full blur-3xl -z-0 pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-5 text-center md:text-left rtl:md:text-right">
+            <div className="w-16 h-16 rounded-3xl bg-gradient-to-tr from-geovision-blue to-cyan-400 text-white flex items-center justify-center font-black shadow-xl shadow-blue-500/30 shrink-0">
+              <History className="w-8 h-8" />
+            </div>
+            <div>
+              <div className="flex items-center gap-3 justify-center md:justify-start rtl:md:justify-end flex-wrap">
+                <h1 className="text-2xl sm:text-4xl font-black tracking-tight">{t('history.title')}</h1>
+                <span className="px-3 py-1 rounded-full text-xs font-black bg-geovision-blue text-white shadow-sm">
+                  {conversationSessions.length} {language === 'ar' ? 'جلسات' : 'Sessions'}
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm font-bold text-slate-300 mt-1">
+                {language === 'ar'
+                  ? 'سجل محادثات GeoVision الذكية والتفاعلات المكانية مقسمة حسب التاريخ'
+                  : `Chronological spatial AI history and conversation timeline for ${user.name}`}
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl font-black text-slate-900 dark:text-white">
-              {t('history.title')}
-            </h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
-              Persistent spatial conversation sessions for {user.name}
-            </p>
+
+          <div className="flex flex-wrap items-center gap-3 shrink-0">
+            {conversationSessions.length > 0 && (
+              <button
+                onClick={clearAllHistory}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-rose-500/20 text-rose-200 hover:bg-rose-500/40 border border-rose-400/30 text-xs font-black transition-all cursor-pointer backdrop-blur-md"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>{language === 'ar' ? 'مسح كافة المحادثات' : 'Clear All History'}</span>
+              </button>
+            )}
+
+            <button
+              onClick={() => {
+                startNewConversation();
+                setCurrentView('map');
+              }}
+              className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-geovision-blue text-white hover:bg-blue-600 text-xs font-black shadow-xl shadow-blue-500/30 transition-all cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>{language === 'ar' ? 'بدء محادثة جديدة' : 'Start New Chat'}</span>
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Session Cards */}
-      <div className="space-y-3">
-        {sessions.map((sess) => (
-          <div
-            key={sess.id}
-            className="glass-panel p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between gap-4 hover:border-geovision-blue dark:hover:border-geovision-blue transition-all cursor-pointer shadow-sm hover:shadow-md"
-            onClick={() => handleContinueSession(sess.queryText)}
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-geovision-blue flex items-center justify-center font-bold shrink-0">
-                <Sparkles className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="text-sm font-black text-slate-900 dark:text-white">
-                  {language === 'ar' ? sess.titleAr : sess.titleEn}
-                </h3>
-                <p className="text-xs text-slate-400 font-semibold mt-0.5">
-                  {sess.time} • {sess.queries} AI interactions
-                </p>
-              </div>
-            </div>
-
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleContinueSession(sess.queryText);
-              }}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-geovision-blue text-white text-xs font-bold hover:bg-blue-600 shadow-md transition-colors shrink-0"
-            >
-              <span>Continue Session</span>
-              <ArrowRight className="w-4 h-4 rtl:rotate-180" />
-            </button>
+      {/* Guest Mode Warning Strip */}
+      {user.isGuest && (
+        <div className="p-4.5 rounded-2xl bg-blue-50/90 dark:bg-slate-900 border border-blue-200/80 dark:border-slate-800 flex items-center justify-between gap-4 shadow-sm">
+          <div className="flex items-center gap-3">
+            <ShieldAlert className="w-5 h-5 text-geovision-blue shrink-0" />
+            <p className="text-xs font-bold text-slate-800 dark:text-slate-200">
+              {language === 'ar'
+                ? 'وضع الزائر — المحادثات محفوظة محلياً في متصفحك. سجل الدخول لمزامنتها.'
+                : 'Guest Mode — Chat history is saved locally in your browser. Sign in to sync across devices.'}
+            </p>
           </div>
-        ))}
-      </div>
+          <button
+            onClick={() => setGuestPromptOpen(true)}
+            className="px-4 py-2 rounded-xl bg-geovision-blue text-white text-xs font-black hover:bg-blue-600 transition-all shrink-0 cursor-pointer shadow-sm"
+          >
+            {language === 'ar' ? 'تسجيل الدخول' : 'Sign In'}
+          </button>
+        </div>
+      )}
+
+      {/* Chronological Timeline Groups */}
+      {conversationSessions.length === 0 ? (
+        <div className="glass-panel p-12 rounded-3xl text-center space-y-4 border border-slate-200/80 dark:border-slate-800/80">
+          <div className="w-16 h-16 rounded-3xl bg-blue-50 dark:bg-blue-950/50 text-geovision-blue mx-auto flex items-center justify-center font-bold shadow-lg">
+            <History className="w-8 h-8 stroke-[1.5]" />
+          </div>
+          <h3 className="text-lg font-black text-slate-900 dark:text-white">No Chat History Found</h3>
+          <p className="text-xs text-slate-400 font-semibold max-w-md mx-auto leading-relaxed">
+            Start a conversation with GeoVision AI spatial copilot to record queries, location filters, and GIS analysis sessions organized by date.
+          </p>
+          <button
+            onClick={() => {
+              startNewConversation();
+              setCurrentView('map');
+            }}
+            className="px-6 py-3 rounded-2xl bg-geovision-blue text-white text-xs font-black shadow-lg hover:bg-blue-600 transition-all cursor-pointer"
+          >
+            Start New AI Conversation
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-8">
+          {groupedTimeline.map((group, groupIdx) => {
+            const GroupIcon = group.icon;
+            return (
+              <div key={groupIdx} className="space-y-4">
+                
+                {/* Timeline Header Badge */}
+                <div className="flex items-center gap-3 border-b border-slate-200/80 dark:border-slate-800 pb-2">
+                  <div className="p-2 rounded-xl bg-blue-100 dark:bg-slate-800 text-geovision-blue dark:text-blue-300">
+                    <GroupIcon className="w-4 h-4" />
+                  </div>
+                  <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                    {language === 'ar' ? group.titleAr : group.titleEn}
+                  </h2>
+                  <span className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 text-[10px] font-black">
+                    {group.items.length} {language === 'ar' ? 'عناصر' : 'items'}
+                  </span>
+                </div>
+
+                {/* 2-Column Responsive Cards Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {group.items.map((sess) => (
+                    <div
+                      key={sess.id}
+                      className="glass-panel p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 flex flex-col justify-between gap-4 hover:border-geovision-blue dark:hover:border-geovision-blue transition-all cursor-pointer shadow-xs hover:shadow-xl group"
+                      onClick={() => {
+                        if (sess.messages && sess.messages.length > 0) {
+                          loadSession(sess);
+                        } else {
+                          sendAIMessage(sess.titleEn);
+                          setCurrentView('map');
+                        }
+                      }}
+                    >
+                      {/* Top Row: Icon & Query Title */}
+                      <div className="flex items-start gap-3.5">
+                        <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-50 to-indigo-100 dark:from-slate-800 dark:to-slate-900 text-geovision-blue flex items-center justify-center font-bold shrink-0 shadow-xs group-hover:bg-geovision-blue group-hover:text-white transition-all">
+                          <Sparkles className="w-5 h-5" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-sm font-black text-slate-900 dark:text-white leading-snug line-clamp-2">
+                            {language === 'ar' ? sess.titleAr : sess.titleEn}
+                          </h3>
+                          <div className="flex items-center gap-2 mt-1.5 text-[11px] font-semibold text-slate-400">
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3 h-3 text-geovision-blue" />
+                              {sess.date}
+                            </span>
+                            <span>•</span>
+                            <span className="flex items-center gap-1">
+                              <MessageSquare className="w-3 h-3 text-slate-400" />
+                              {sess.queryCount} {language === 'ar' ? 'تفاعلات' : 'interactions'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Bottom Row: Actions */}
+                      <div className="pt-3 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between gap-2">
+                        <span className="text-[10px] font-extrabold uppercase text-geovision-blue dark:text-blue-400">
+                          GeoVision GIS Session
+                        </span>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteSession(sess.id);
+                            }}
+                            className="p-2 rounded-xl text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+                            title="Delete Session"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (sess.messages && sess.messages.length > 0) {
+                                loadSession(sess);
+                              } else {
+                                sendAIMessage(sess.titleEn);
+                                setCurrentView('map');
+                              }
+                            }}
+                            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-geovision-blue text-white text-xs font-black hover:bg-blue-600 shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+                          >
+                            <span>Continue</span>
+                            <ArrowRight className="w-3.5 h-3.5 rtl:rotate-180" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+              </div>
+            );
+          })}
+        </div>
+      )}
 
     </div>
   );

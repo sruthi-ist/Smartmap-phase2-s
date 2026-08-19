@@ -48,6 +48,31 @@ export interface SmartFilterState {
   minRating: number | null;
 }
 
+export interface ConversationContext {
+  language: 'en' | 'ar';
+  currentIntent: string | null;
+  category: string | null;
+  featureType: string | null;
+  location: string | null;
+  resolvedLocation: string | null;
+  radius: number | null;
+  radiusUnit: string;
+  attributes: Record<string, any>;
+  resultCount: number;
+  currentResults: GeoFeature[];
+  previousResults: GeoFeature[];
+  selectedFeature: GeoFeature | null;
+  selectedCategories: string[];
+  selectedDatasets: string[];
+  activeFilters: string[];
+  mapExtent: { center: [number, number]; zoom: number } | null;
+  userLocation: [number, number] | null;
+  locationPermission: 'unknown' | 'prompt' | 'granted' | 'denied';
+  pendingClarification: any | null;
+  lastUserQuery: string | null;
+  lastAIResponse: string | null;
+}
+
 export interface AIMessage {
   id: string;
   sender: 'user' | 'ai';
@@ -60,6 +85,25 @@ export interface AIMessage {
   appliedFilters?: Partial<SmartFilterState>;
   matchedFeatures?: GeoFeature[];
   trustLevel?: 'authoritative' | 'external';
+  queryInterpretation?: {
+    titleEn: string;
+    titleAr: string;
+    chips: { labelEn: string; labelAr: string; key: string; isUpdated?: boolean }[];
+  };
+  countCardData?: {
+    count: number;
+    titleEn: string;
+    titleAr: string;
+    scopeEn: string;
+    scopeAr: string;
+  };
+  disambiguationOptions?: { labelEn: string; labelAr: string; query: string }[];
+  unsupportedAction?: { actionType: 'open_explore'; labelEn: string; labelAr: string };
+  noResultsSuggestions?: { labelEn: string; labelAr: string; query: string }[];
+  locationPromptRequired?: boolean;
+  detailsFeatureId?: string;
+  detailsFeature?: GeoFeature;
+  showPrivateListAction?: boolean;
   mapAction?: {
     type: 'zoom_and_filter' | 'highlight' | 'buffer' | 'aoi_summary';
     locationName?: string;

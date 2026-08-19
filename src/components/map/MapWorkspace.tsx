@@ -1,8 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import { useAppState } from '../../context/AppStateContext';
-import { ABU_DHABI_LOCATIONS, GEO_FEATURES } from '../../data/mockAbuDhabiData';
-import type { LocationSearchResult, DrawnShape } from '../../types';
+import type { DrawnShape } from '../../types';
 import { MapToolbar } from './MapToolbar';
 import { IdentifyPanel } from './IdentifyPanel';
 import { BasemapGallery } from './BasemapGallery';
@@ -12,9 +11,8 @@ import { PrintMapModal } from './PrintMapModal';
 import { SketchAOITool } from './SketchAOITool';
 import { GeoVisionPanel } from '../ai/GeoVisionPanel';
 import { SmartFilterPanel } from '../filters/SmartFilterPanel';
-import { MapCategoryDock } from '../categories/MapCategoryDock';
 import { createGeoVisionMarkerIcon, getCategoryColor } from '../../utils/markerUtils';
-import { Search, Sparkles, MapPin, X, Layers } from 'lucide-react';
+import { Sparkles, X, Layers, ChevronUp } from 'lucide-react';
 
 export const MapWorkspace: React.FC = () => {
   const {
@@ -24,18 +22,16 @@ export const MapWorkspace: React.FC = () => {
     setSelectedFeature,
     mapCenter,
     mapZoom,
-    setMapCenterAndZoom,
     filteredFeatures,
     bufferRadiusKm,
     aoiResult,
-    sendAIMessage,
     showToast,
     filterDrawerOpen,
     setFilterDrawerOpen,
     drawTool,
     userDrawnShapes,
     setUserDrawnShapes,
-    t,
+    sendAIMessage,
   } = useAppState();
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -46,11 +42,59 @@ export const MapWorkspace: React.FC = () => {
   const bufferCircleRef = useRef<L.Circle | null>(null);
   const aoiPolygonRef = useRef<L.Polygon | null>(null);
 
-  const [searchMode, setSearchMode] = useState<'ai' | 'loc'>('loc');
-  const [aiInputText, setAiInputText] = useState('');
-  const [locSearchInput, setLocSearchInput] = useState('');
-  const [locSuggestions, setLocSuggestions] = useState<LocationSearchResult[]>([]);
   const [aiPanelOpen, setAiPanelOpen] = useState(true);
+
+  // Coordinate Format Dropdown State & Ref
+  const [coordFormat, setCoordFormat] = useState<'DD' | 'DDM' | 'DMS' | 'UTM'>('DD');
+  const [coordMenuOpen, setCoordMenuOpen] = useState(false);
+  const coordRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (coordRef.current && !coordRef.current.contains(e.target as Node)) {
+        setCoordMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const formatCoordinates = (lat: number, lng: number, fmt: 'DD' | 'DDM' | 'DMS' | 'UTM'): string => {
+    const absLat = Math.abs(lat);
+    const absLng = Math.abs(lng);
+    const latDir = lat >= 0 ? 'N' : 'S';
+    const lngDir = lng >= 0 ? 'E' : 'W';
+
+    if (fmt === 'DDM') {
+      const latDeg = Math.floor(absLat);
+      const latMin = ((absLat - latDeg) * 60).toFixed(3);
+      const lngDeg = Math.floor(absLng);
+      const lngMin = ((absLng - lngDeg) * 60).toFixed(3);
+      return `${latDeg}° ${latMin}' ${latDir}, ${lngDeg}° ${lngMin}' ${lngDir}`;
+    }
+
+    if (fmt === 'DMS') {
+      const latDeg = Math.floor(absLat);
+      const latMinTotal = (absLat - latDeg) * 60;
+      const latMin = Math.floor(latMinTotal);
+      const latSec = ((latMinTotal - latMin) * 60).toFixed(1);
+
+      const lngDeg = Math.floor(absLng);
+      const lngMinTotal = (absLng - lngDeg) * 60;
+      const lngMin = Math.floor(lngMinTotal);
+      const lngSec = ((lngMinTotal - lngMin) * 60).toFixed(1);
+
+      return `${latDeg}° ${latMin}' ${latSec}" ${latDir}, ${lngDeg}° ${lngMin}' ${lngSec}" ${lngDir}`;
+    }
+
+    if (fmt === 'UTM') {
+      const easting = Math.round(233750 + (lng - 54.3773) * 92000);
+      const northing = Math.round(2706300 + (lat - 24.4539) * 110500);
+      return `39R ${easting}mE ${northing}mN`;
+    }
+
+    return `${lat.toFixed(4)}° ${latDir}, ${lng.toFixed(4)}° ${lngDir}`;
+  };
 
   // 100% English Basemap Tile URLs
   const basemapUrls: Record<string, string> = {
@@ -297,140 +341,238 @@ export const MapWorkspace: React.FC = () => {
     });
   }, [userDrawnShapes]);
 
-  // Handle Interactive Map Click Drawing
+  const tempShapeRef = useRef<L.Layer | null>(null);
+  const tempPointsRef = useRef<L.LatLng[]>([]);
+  const isDrawingRef = useRef<boolean>(false);
+  const startLatLngRef = useRef<L.LatLng | null>(null);
+
+  // Handle Freehand Interactive Map Drawing for All Tools (Circle, Rect, Polygon, Point)
   useEffect(() => {
-    if (!mapInstanceRef.current) return;
+    if (!mapInstanceRef.current || activeTool !== 'sketch') {
+      if (tempShapeRef.current) {
+        tempShapeRef.current.remove();
+        tempShapeRef.current = null;
+      }
+      isDrawingRef.current = false;
+      startLatLngRef.current = null;
+      tempPointsRef.current = [];
+      return;
+    }
+
+    const map = mapInstanceRef.current;
 
     const handleMapClick = (e: L.LeafletMouseEvent) => {
-      if (activeTool !== 'sketch') return;
+      const latlng = e.latlng;
 
-      const { lat, lng } = e.latlng;
-      const shapeId = `shape-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+      // 1. POINT TOOL
+      if (drawTool === 'point') {
+        const shapeId = `shape-${Date.now()}`;
+        const newShape: DrawnShape = {
+          id: shapeId,
+          type: 'point',
+          lat: latlng.lat,
+          lng: latlng.lng,
+          radius: 1000,
+        };
+        setUserDrawnShapes((prev) => [...prev, newShape]);
+        showToast(`Point dropped at ${latlng.lat.toFixed(3)}°N, ${latlng.lng.toFixed(3)}°E`);
+        setAiPanelOpen(true);
+        sendAIMessage(`Analyze drawn Point Marker at ${latlng.lat.toFixed(3)}°N, ${latlng.lng.toFixed(3)}°E`);
+        return;
+      }
 
-      const newShape: DrawnShape = {
-        id: shapeId,
-        type: drawTool,
-        lat,
-        lng,
-        radius: 2000,
-        bounds: [
-          [lat - 0.012, lng - 0.018],
-          [lat + 0.012, lng + 0.018],
-        ],
-        points: [
-          [lat + 0.015, lng],
-          [lat, lng + 0.018],
-          [lat - 0.015, lng],
-          [lat, lng - 0.018],
-        ],
-      };
+      // 2. CIRCLE TOOL (Click 1 sets center, MouseMove expands radius, Click 2 fixes size)
+      if (drawTool === 'circle') {
+        if (!isDrawingRef.current || !startLatLngRef.current) {
+          isDrawingRef.current = true;
+          startLatLngRef.current = latlng;
+          const tempCircle = L.circle(latlng, {
+            radius: 200,
+            color: '#176BFF',
+            fillColor: '#176BFF',
+            fillOpacity: 0.2,
+            weight: 3,
+            dashArray: '6, 6',
+          }).addTo(map);
+          tempShapeRef.current = tempCircle;
+          showToast('Move cursor to adjust circle radius size, then click to complete');
+        } else {
+          const center = startLatLngRef.current;
+          const radiusMeters = center.distanceTo(latlng);
+          const radiusKm = Math.max(0.5, radiusMeters / 1000);
 
-      setUserDrawnShapes((prev) => [...prev, newShape]);
+          if (tempShapeRef.current) {
+            tempShapeRef.current.remove();
+            tempShapeRef.current = null;
+          }
+          isDrawingRef.current = false;
+          startLatLngRef.current = null;
 
-      const labelName =
-        drawTool === 'point'
-          ? 'Point Marker'
-          : drawTool === 'circle'
-          ? 'Circle Buffer'
-          : drawTool === 'polygon'
-          ? 'Polygon Boundary'
-          : 'Rectangle Box';
+          const shapeId = `shape-${Date.now()}`;
+          const newShape: DrawnShape = {
+            id: shapeId,
+            type: 'circle',
+            lat: center.lat,
+            lng: center.lng,
+            radius: radiusMeters,
+          };
+          setUserDrawnShapes((prev) => [...prev, newShape]);
+          showToast(`Created Circle Buffer: ${radiusKm.toFixed(1)} km radius`);
+          setAiPanelOpen(true);
+          sendAIMessage(`Analyze drawn Circle Buffer (${radiusKm.toFixed(1)} km radius)`);
+        }
+        return;
+      }
 
-      showToast(`Drawn ${labelName} at ${lat.toFixed(4)}°N, ${lng.toFixed(4)}°E`);
+      // 3. RECTANGLE TOOL (Click 1 sets corner 1, MouseMove expands box, Click 2 fixes box)
+      if (drawTool === 'rect') {
+        if (!isDrawingRef.current || !startLatLngRef.current) {
+          isDrawingRef.current = true;
+          startLatLngRef.current = latlng;
+          const bounds = L.latLngBounds(latlng, latlng);
+          const tempRect = L.rectangle(bounds, {
+            color: '#10B981',
+            fillColor: '#10B981',
+            fillOpacity: 0.2,
+            weight: 3,
+            dashArray: '6, 6',
+          }).addTo(map);
+          tempShapeRef.current = tempRect;
+          showToast('Move cursor to adjust rectangle size, then click to complete');
+        } else {
+          const p1 = startLatLngRef.current;
+          const p2 = latlng;
+          const bounds = L.latLngBounds(p1, p2);
+          const center = bounds.getCenter();
+
+          if (tempShapeRef.current) {
+            tempShapeRef.current.remove();
+            tempShapeRef.current = null;
+          }
+          isDrawingRef.current = false;
+          startLatLngRef.current = null;
+
+          const shapeId = `shape-${Date.now()}`;
+          const newShape: DrawnShape = {
+            id: shapeId,
+            type: 'rect',
+            lat: center.lat,
+            lng: center.lng,
+            radius: p1.distanceTo(p2) / 2,
+            bounds: [
+              [bounds.getSouth(), bounds.getWest()],
+              [bounds.getNorth(), bounds.getEast()],
+            ],
+          };
+          setUserDrawnShapes((prev) => [...prev, newShape]);
+          showToast('Created Rectangle Bounding Box');
+          setAiPanelOpen(true);
+          sendAIMessage(`Analyze drawn Rectangle Bounding Box`);
+        }
+        return;
+      }
+
+      // 4. POLYGON TOOL (Click points to add vertices, double click to finish)
+      if (drawTool === 'polygon') {
+        tempPointsRef.current.push(latlng);
+        showToast(`Added vertex ${tempPointsRef.current.length}. Double-click when finished!`);
+
+        if (tempPointsRef.current.length >= 2) {
+          if (tempShapeRef.current) {
+            tempShapeRef.current.remove();
+          }
+          const tempPoly = L.polygon(tempPointsRef.current, {
+            color: '#8B5CF6',
+            fillColor: '#8B5CF6',
+            fillOpacity: 0.2,
+            weight: 3,
+            dashArray: '6, 6',
+          }).addTo(map);
+          tempShapeRef.current = tempPoly;
+        }
+      }
     };
 
-    mapInstanceRef.current.on('click', handleMapClick);
+    const handleMouseMove = (e: L.LeafletMouseEvent) => {
+      if (!isDrawingRef.current || !startLatLngRef.current) return;
+      const latlng = e.latlng;
+
+      if (drawTool === 'circle' && tempShapeRef.current && tempShapeRef.current instanceof L.Circle) {
+        const radiusMeters = Math.max(100, startLatLngRef.current.distanceTo(latlng));
+        tempShapeRef.current.setRadius(radiusMeters);
+      } else if (drawTool === 'rect' && tempShapeRef.current && tempShapeRef.current instanceof L.Rectangle) {
+        const bounds = L.latLngBounds(startLatLngRef.current, latlng);
+        tempShapeRef.current.setBounds(bounds);
+      }
+    };
+
+    const handleDblClick = () => {
+      if (drawTool === 'polygon' && tempPointsRef.current.length >= 3) {
+        const points = [...tempPointsRef.current];
+        const latSum = points.reduce((sum, p) => sum + p.lat, 0);
+        const lngSum = points.reduce((sum, p) => sum + p.lng, 0);
+        const centerLat = latSum / points.length;
+        const centerLng = lngSum / points.length;
+
+        if (tempShapeRef.current) {
+          tempShapeRef.current.remove();
+          tempShapeRef.current = null;
+        }
+        tempPointsRef.current = [];
+
+        const shapeId = `shape-${Date.now()}`;
+        const newShape: DrawnShape = {
+          id: shapeId,
+          type: 'polygon',
+          lat: centerLat,
+          lng: centerLng,
+          radius: 2000,
+          points: points.map((p) => [p.lat, p.lng] as [number, number]),
+        };
+        setUserDrawnShapes((prev) => [...prev, newShape]);
+        showToast('Created Polygon Boundary AOI');
+        setAiPanelOpen(true);
+        sendAIMessage(`Analyze drawn Polygon Boundary AOI`);
+      }
+    };
+
+    map.on('click', handleMapClick);
+    map.on('mousemove', handleMouseMove);
+    map.on('dblclick', handleDblClick);
 
     return () => {
-      mapInstanceRef.current?.off('click', handleMapClick);
+      map.off('click', handleMapClick);
+      map.off('mousemove', handleMouseMove);
+      map.off('dblclick', handleDblClick);
     };
-  }, [activeTool, drawTool, setUserDrawnShapes, showToast]);
+  }, [activeTool, drawTool, setUserDrawnShapes, sendAIMessage, showToast]);
 
-  // Location search autocomplete
-  const handleLocationInputChange = (val: string) => {
-    setLocSearchInput(val);
-    if (!val.trim()) {
-      setLocSuggestions([]);
-      return;
+
+
+  // Invalidate Leaflet Map Size on AI Panel toggle and window resize
+  useEffect(() => {
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.invalidateSize();
+      const timer1 = setTimeout(() => {
+        mapInstanceRef.current?.invalidateSize();
+      }, 100);
+      const timer2 = setTimeout(() => {
+        mapInstanceRef.current?.invalidateSize();
+      }, 350);
+      return () => {
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+      };
     }
-    const matches = ABU_DHABI_LOCATIONS.filter(
-      loc =>
-        loc.nameEn.toLowerCase().includes(val.toLowerCase()) ||
-        loc.nameAr.includes(val) ||
-        loc.typeEn.toLowerCase().includes(val.toLowerCase())
-    );
-    setLocSuggestions(matches);
-  };
+  }, [aiPanelOpen]);
 
-  const handleSelectLocation = (loc: LocationSearchResult) => {
-    setMapCenterAndZoom([loc.lat, loc.lng], loc.zoom);
-    setLocSearchInput(language === 'ar' ? loc.nameAr : loc.nameEn);
-    setLocSuggestions([]);
-    showToast(`Centered map on ${language === 'ar' ? loc.nameAr : loc.nameEn}`);
-  };
-
-  // Submit Handler for Search Bar
-  const handleSearchSubmit = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-
-    if (searchMode === 'ai') {
-      const query = aiInputText.trim();
-      if (!query) return;
-      sendAIMessage(query);
-      setAiInputText('');
-      setAiPanelOpen(true);
-      return;
-    }
-
-    // Location search submit logic
-    const val = locSearchInput.trim();
-    if (!val) return;
-    setLocSuggestions([]);
-
-    // 1. Direct match in ABU_DHABI_LOCATIONS
-    const locMatch = ABU_DHABI_LOCATIONS.find(
-      l =>
-        l.nameEn.toLowerCase().includes(val.toLowerCase()) ||
-        l.nameAr.includes(val) ||
-        val.toLowerCase().includes(l.nameEn.toLowerCase())
-    );
-
-    if (locMatch) {
-      setMapCenterAndZoom([locMatch.lat, locMatch.lng], locMatch.zoom);
-      showToast(`Navigated map to ${language === 'ar' ? locMatch.nameAr : locMatch.nameEn}`);
-      sendAIMessage(`Show spatial datasets around ${locMatch.nameEn}`);
-      return;
-    }
-
-    // 2. Feature match in GEO_FEATURES
-    const featMatch = GEO_FEATURES.find(
-      f =>
-        f.nameEn.toLowerCase().includes(val.toLowerCase()) ||
-        f.nameAr.includes(val) ||
-        f.category.toLowerCase().includes(val.toLowerCase())
-    );
-
-    if (featMatch) {
-      setMapCenterAndZoom([featMatch.lat, featMatch.lng], 15);
-      setSelectedFeature(featMatch);
-      showToast(`Located feature: ${language === 'ar' ? featMatch.nameAr : featMatch.nameEn}`);
-      sendAIMessage(`Show details for ${featMatch.nameEn}`);
-      return;
-    }
-
-    // 3. Smart Fallback Location Match (e.g. Dubai, Corniche, Abu Dhabi)
-    if (val.toLowerCase().includes('dubai') || val.includes('دبي')) {
-      setMapCenterAndZoom([25.2048, 55.2708], 12);
-      showToast('Navigated map to Dubai, UAE');
-      sendAIMessage('Overview of Dubai location extent');
-      return;
-    }
-
-    // 4. Default AI query fallback
-    showToast(`Searching spatial index for "${val}"`);
-    sendAIMessage(val);
-    setAiPanelOpen(true);
-  };
+  useEffect(() => {
+    const handleResize = () => {
+      mapInstanceRef.current?.invalidateSize();
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   return (
     <div className="relative w-full h-screen pt-[84px] sm:pt-[88px] overflow-hidden flex flex-col md:flex-row bg-spatial-canvas">
@@ -458,96 +600,11 @@ export const MapWorkspace: React.FC = () => {
       {/* Main 90% Visual Canvas Map */}
       <div className="relative flex-1 h-full w-full overflow-hidden">
         
-        {/* Leaflet Map Canvas (rendered first so overlays sit on top) */}
+        {/* Leaflet Map Canvas */}
         <div ref={mapContainerRef} className="w-full h-full z-0" />
-
-        {/* Top-Center Floating Glass AI Search Overlay */}
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[500] w-[92%] max-w-xl">
-          <form
-            onSubmit={handleSearchSubmit}
-            className="glass-level-2 p-1.5 rounded-3xl shadow-2xl border border-white/80 dark:border-white/10 flex items-center gap-2 glow-blue"
-          >
-            
-            {/* Search Mode Segmented Toggle */}
-            <div className="flex items-center p-1 rounded-2xl bg-slate-100/80 dark:bg-slate-800/80 text-[11px] font-bold shrink-0">
-              <button
-                type="button"
-                onClick={() => setSearchMode('ai')}
-                className={`flex items-center gap-1 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
-                  searchMode === 'ai'
-                    ? 'bg-geovision-blue text-white shadow-md'
-                    : 'text-slate-600 dark:text-slate-400'
-                }`}
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                {t('map.searchModeAI')}
-              </button>
-              <button
-                type="button"
-                onClick={() => setSearchMode('loc')}
-                className={`flex items-center gap-1 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
-                  searchMode === 'loc'
-                    ? 'bg-geovision-blue text-white shadow-md'
-                    : 'text-slate-600 dark:text-slate-400'
-                }`}
-              >
-                <MapPin className="w-3.5 h-3.5" />
-                {t('map.searchModeLoc')}
-              </button>
-            </div>
-
-            {/* Input Form */}
-            {searchMode === 'ai' ? (
-              <input
-                type="text"
-                value={aiInputText}
-                onChange={(e) => setAiInputText(e.target.value)}
-                placeholder={t('hero.searchPlaceholder')}
-                className="w-full bg-transparent px-2 text-xs sm:text-sm font-semibold text-slate-900 dark:text-white focus:outline-hidden placeholder-slate-400"
-              />
-            ) : (
-              <div className="relative w-full">
-                <input
-                  type="text"
-                  value={locSearchInput}
-                  onChange={(e) => handleLocationInputChange(e.target.value)}
-                  placeholder={t('map.locPlaceholder')}
-                  className="w-full bg-transparent px-2 text-xs sm:text-sm font-semibold text-slate-900 dark:text-white focus:outline-hidden placeholder-slate-400"
-                />
-
-                {/* Autocomplete Dropdown */}
-                {locSuggestions.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-2 glass-level-3 rounded-2xl shadow-2xl border border-white/70 dark:border-slate-800 py-1.5 z-[500]">
-                    {locSuggestions.map((loc) => (
-                      <div
-                        key={loc.id}
-                        onClick={() => handleSelectLocation(loc)}
-                        className="px-3.5 py-2 text-xs font-bold hover:bg-geovision-blue hover:text-white cursor-pointer transition-colors flex items-center justify-between"
-                      >
-                        <span>{language === 'ar' ? loc.nameAr : loc.nameEn}</span>
-                        <span className="text-[10px] opacity-75">{language === 'ar' ? loc.typeAr : loc.typeEn}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              className="p-2.5 rounded-2xl bg-geovision-blue text-white hover:bg-blue-600 shadow-md shrink-0 cursor-pointer"
-            >
-              <Search className="w-4 h-4" />
-            </button>
-
-          </form>
-        </div>
 
         {/* Floating Tool Dock */}
         <MapToolbar />
-
-        {/* MANDATORY: Floating Category Dock on Map Workspace */}
-        <MapCategoryDock />
 
         {/* Active Floating Tool Panels */}
         {activeTool === 'basemap' && <BasemapGallery />}
@@ -561,34 +618,96 @@ export const MapWorkspace: React.FC = () => {
         {/* Print Modal */}
         <PrintMapModal />
 
-        {/* Bottom Coordinates & Scale Capsule Status Bar */}
-        <div className="absolute bottom-3 left-4 rtl:left-auto rtl:right-4 z-[500] glass-level-1 px-4 py-2 rounded-2xl border border-white/70 dark:border-slate-800 text-[11px] font-black text-slate-800 dark:text-slate-200 flex items-center gap-3 shadow-lg">
-          <span>{mapCenter[0].toFixed(4)}° N, {mapCenter[1].toFixed(4)}° E</span>
-          <span className="h-3 w-px bg-slate-300 dark:bg-slate-700" />
-          <span>Scale: 1:{Math.round(250000 / mapZoom)}</span>
-          <span className="h-3 w-px bg-slate-300 dark:bg-slate-700" />
-          <span className="text-geovision-blue">{filteredFeatures.length} Active Layer Features</span>
+        {/* Bottom Coordinates & Scale Capsule Status Bar with Format Radio Selector */}
+        <div className="hidden sm:block absolute bottom-3 left-16 sm:left-20 rtl:left-auto rtl:right-16 sm:rtl:right-20 z-[600]" ref={coordRef}>
+          
+          {/* Radio Button Popover Dropdown (Matches Reference Image) */}
+          {coordMenuOpen && (
+            <div className="absolute bottom-full left-0 mb-2.5 z-[9999] w-44 p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-700/90 shadow-2xl shadow-slate-950/20 space-y-1.5 animate-in fade-in zoom-in-95 duration-150">
+              <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider px-1 pb-1 border-b border-slate-100 dark:border-slate-800">
+                Coordinate Format
+              </div>
+              {[
+                { id: 'DD', label: 'DD (Decimal Deg)' },
+                { id: 'DDM', label: 'DDM (Deg Dec Min)' },
+                { id: 'DMS', label: 'DMS (Deg Min Sec)' },
+                { id: 'UTM', label: 'UTM (Grid Proj)' },
+              ].map((opt) => {
+                const isSelected = coordFormat === opt.id;
+                return (
+                  <div
+                    key={opt.id}
+                    onClick={() => {
+                      setCoordFormat(opt.id as any);
+                      setCoordMenuOpen(false);
+                    }}
+                    className="flex items-center gap-2.5 px-2 py-1.5 rounded-xl cursor-pointer hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    <div
+                      className={`w-4 h-4 rounded-full flex items-center justify-center transition-all shrink-0 ${
+                        isSelected
+                          ? 'border-2 border-geovision-blue'
+                          : 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800'
+                      }`}
+                    >
+                      {isSelected && <div className="w-2 h-2 rounded-full bg-geovision-blue" />}
+                    </div>
+                    <span className={`text-xs ${isSelected ? 'font-black text-geovision-blue dark:text-blue-300' : 'font-extrabold text-slate-700 dark:text-slate-300'}`}>
+                      {opt.label}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Status Bar Capsule */}
+          <div className="flex items-center gap-3 glass-level-1 px-4 py-2 rounded-2xl border border-white/70 dark:border-slate-800 text-[11px] font-black text-slate-800 dark:text-slate-200 shadow-lg">
+            
+            {/* Format Dropdown Button */}
+            <button
+              type="button"
+              onClick={() => setCoordMenuOpen(!coordMenuOpen)}
+              className="flex items-center gap-1 font-black text-slate-900 dark:text-white hover:text-geovision-blue dark:hover:text-geovision-blue cursor-pointer"
+            >
+              <span>{coordFormat}</span>
+              <ChevronUp className={`w-3.5 h-3.5 transition-transform duration-200 ${coordMenuOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {/* Coordinates Display Value */}
+            <span className="font-extrabold">{formatCoordinates(mapCenter[0], mapCenter[1], coordFormat)}</span>
+
+            <span className="h-3 w-px bg-slate-300 dark:bg-slate-700" />
+
+            {/* Scale */}
+            <span>Scale: 1:{Math.round(250000 / mapZoom)}</span>
+
+          </div>
+
         </div>
 
       </div>
 
-      {/* Right Floating GeoVision AI Panel */}
+      {/* Original Right Side Docked GeoVision AI Panel */}
       <div
-        className={`relative z-20 transition-all duration-300 ${
-          aiPanelOpen ? 'w-full md:w-96 lg:w-[400px] h-80 md:h-full' : 'w-0 h-0 overflow-hidden'
+        className={`transition-all duration-300 ${
+          aiPanelOpen
+            ? 'fixed md:relative inset-x-0 bottom-0 top-auto z-[700] md:z-20 h-[65vh] max-h-[500px] md:max-h-none md:h-full w-full md:w-[430px] lg:w-[470px] rounded-t-3xl md:rounded-none shadow-2xl border-t md:border-t-0 border-slate-200 dark:border-slate-800'
+            : 'w-0 h-0 overflow-hidden hidden'
         } shrink-0`}
       >
-        <GeoVisionPanel />
+        <GeoVisionPanel onClose={() => setAiPanelOpen(false)} />
       </div>
 
-      {/* AI Panel Toggle Button */}
+      {/* AI Panel Toggle Button - Floating Pill at Bottom Right */}
       {!aiPanelOpen && (
         <button
           onClick={() => setAiPanelOpen(true)}
-          className="absolute top-4 right-4 rtl:right-auto rtl:left-4 z-[400] p-3 rounded-2xl glass-level-2 text-geovision-blue border border-white/80 dark:border-slate-800 shadow-xl hover:bg-white"
+          className="absolute bottom-3 sm:bottom-4 right-4 rtl:right-auto rtl:left-4 z-[600] flex items-center gap-2 px-4 py-2.5 rounded-full bg-geovision-blue text-white shadow-xl shadow-blue-500/35 hover:bg-blue-600 active:scale-95 transition-all cursor-pointer border border-white/30 text-xs font-black tracking-tight"
           title="Open GeoVision AI Assistant"
         >
-          <Sparkles className="w-5 h-5 text-geovision-blue" />
+          <Sparkles className="w-4 h-4 text-white animate-pulse" />
+          <span>{language === 'ar' ? 'مساعد GeoVision AI' : 'GeoVision AI'}</span>
         </button>
       )}
 

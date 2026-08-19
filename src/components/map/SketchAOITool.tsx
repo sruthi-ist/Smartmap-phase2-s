@@ -26,6 +26,7 @@ export const SketchAOITool: React.FC = () => {
     userDrawnShapes,
     aoiResult,
     setAoiResult,
+    sendAIMessage,
     showToast,
     t,
   } = useAppState();
@@ -35,19 +36,30 @@ export const SketchAOITool: React.FC = () => {
   const getHelpText = () => {
     switch (drawTool) {
       case 'point':
-        return 'Click on the map to drop markers';
+        return '📍 Click anywhere on the map to drop a point pin';
       case 'circle':
-        return 'Click and drag on the map to draw circle buffer';
-      case 'polygon':
-        return 'Click points on the map to draw polygon boundary';
+        return '⭕ Click center point on map, move cursor to adjust circle radius, click again to lock';
       case 'rect':
-        return 'Click and drag on the map to draw bounding box';
+        return '█ Click start corner on map, move cursor to expand box, click again to lock';
+      case 'polygon':
+        return '⬡ Click points on map to add vertices. Double-click to complete boundary';
     }
   };
 
   const handleSimulateShapeDraw = () => {
     setSketchState('drawn');
     showToast(`${drawTool.toUpperCase()} spatial drawing created`);
+
+    const labelName =
+      drawTool === 'point'
+        ? 'Point Marker'
+        : drawTool === 'circle'
+        ? 'Circle Buffer'
+        : drawTool === 'polygon'
+        ? 'Polygon Boundary'
+        : 'Rectangle Box';
+
+    sendAIMessage(`Analyze drawn ${labelName}`);
   };
 
   const handleAnalyzeAOI = () => {
@@ -84,6 +96,17 @@ export const SketchAOITool: React.FC = () => {
 
     setAoiResult(res);
     showToast('GeoVision Smart Insights generated!');
+
+    const labelName =
+      drawTool === 'point'
+        ? 'Point Marker'
+        : drawTool === 'circle'
+        ? 'Circle Buffer'
+        : drawTool === 'polygon'
+        ? 'Polygon Boundary'
+        : 'Rectangle Box';
+
+    sendAIMessage(`Analyze drawn ${labelName} (4.8 km²)`);
   };
 
   const handleClearDrawings = () => {
@@ -93,7 +116,7 @@ export const SketchAOITool: React.FC = () => {
   };
 
   return (
-    <div className="absolute top-20 right-22 rtl:right-auto rtl:left-22 z-[600] w-80 sm:w-[360px] glass-level-3 rounded-3xl p-5 shadow-2xl border border-white/80 dark:border-slate-800 animate-fade-in space-y-4 glow-blue">
+    <div className="absolute top-20 left-18 sm:left-20 rtl:left-auto rtl:right-18 sm:rtl:right-20 z-[600] w-80 sm:w-[360px] glass-level-3 rounded-3xl p-5 shadow-2xl border border-white/80 dark:border-slate-800 animate-fade-in space-y-4 glow-blue">
       
       {/* Header */}
       <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">

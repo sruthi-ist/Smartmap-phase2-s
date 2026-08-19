@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAppState } from '../../context/AppStateContext';
-import { ShieldCheck, X, Eye, EyeOff, Lock, Mail, User, ArrowRight } from 'lucide-react';
+import { X, Eye, EyeOff, Lock, Mail, User, ArrowRight } from 'lucide-react';
 
 export const AuthModal: React.FC = () => {
   const { loginModalOpen, setLoginModalOpen, setUser, showToast, language } = useAppState();
@@ -84,25 +84,7 @@ export const AuthModal: React.FC = () => {
           </p>
         </div>
 
-        {/* UAE PASS Quick Login Option */}
-        {tab === 'signin' && (
-          <button
-            onClick={handleSignIn}
-            className="w-full py-3 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-xs font-black hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer"
-          >
-            <ShieldCheck className="w-4 h-4 text-emerald-400 dark:text-emerald-600" />
-            <span>{language === 'ar' ? 'تسجيل الدخول باستخدام الهوية الرقمية (UAE PASS)' : 'Sign in with UAE PASS'}</span>
-          </button>
-        )}
 
-        {tab === 'signin' && (
-          <div className="relative flex items-center justify-center">
-            <div className="border-t border-slate-200 dark:border-slate-800 w-full" />
-            <span className="bg-white/80 dark:bg-slate-900 px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider absolute">
-              {language === 'ar' ? 'أو بالحساب الإلكتروني' : 'Or use account'}
-            </span>
-          </div>
-        )}
 
         {/* Tab Selector */}
         {tab !== 'forgot' && (

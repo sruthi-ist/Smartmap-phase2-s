@@ -40,7 +40,7 @@ export const MapLegend: React.FC = () => {
   const { language, setActiveTool } = useAppState();
 
   return (
-    <div className="absolute top-20 right-20 rtl:right-auto rtl:left-20 z-[600] w-64 sm:w-72 glass-level-3 bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl rounded-3xl p-4 sm:p-5 shadow-2xl border border-white/80 dark:border-slate-800 animate-scale-in glow-blue">
+    <div className="absolute top-20 left-18 sm:left-20 rtl:left-auto rtl:right-18 sm:rtl:right-20 z-[600] w-64 sm:w-72 glass-level-3 bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl rounded-3xl p-4 sm:p-5 shadow-2xl border border-white/80 dark:border-slate-800 animate-scale-in glow-blue">
       {/* Legend Header */}
       <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5 mb-3">
         <h3 className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-widest flex items-center gap-2">

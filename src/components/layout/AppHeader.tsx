@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAppState } from '../../context/AppStateContext';
 import {
   Globe,
@@ -14,6 +14,8 @@ import {
   Map,
   Home,
   ChevronDown,
+  Menu,
+  X,
 } from 'lucide-react';
 
 export const AppHeader: React.FC = () => {
@@ -33,13 +35,35 @@ export const AppHeader: React.FC = () => {
   } = useAppState();
 
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const userDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Auto-close user dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userDropdownRef.current && !userDropdownRef.current.contains(event.target as Node)) {
+        setUserDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleNavClick = (view: any) => {
+    setCurrentView(view);
+    setUserDropdownOpen(false);
+    setMobileMenuOpen(false);
+  };
 
   const toggleLanguage = () => {
     setLanguage(language === 'en' ? 'ar' : 'en');
+    setUserDropdownOpen(false);
   };
 
   const toggleTheme = () => {
     setTheme(theme === 'light' ? 'dark' : 'light');
+    setUserDropdownOpen(false);
   };
 
   const handleLogout = () => {
@@ -54,22 +78,22 @@ export const AppHeader: React.FC = () => {
   };
 
   return (
-    <div className="fixed top-3 left-1/2 -translate-x-1/2 z-[500] w-[calc(100%-2rem)] max-w-7xl">
-      <header className="w-full h-[60px] sm:h-[62px] glass-level-2 rounded-2xl px-3.5 sm:px-5 flex items-center justify-between shadow-xl border border-white/80 dark:border-white/10">
+    <div className="fixed top-2 sm:top-3 left-1/2 -translate-x-1/2 z-[500] w-[calc(100%-1rem)] sm:w-[calc(100%-2rem)] max-w-7xl">
+      <header className="relative w-full h-[56px] sm:h-[62px] glass-level-2 rounded-2xl px-2.5 sm:px-5 flex items-center justify-between shadow-xl border border-white/80 dark:border-white/10">
         
         {/* Left: First Logo — Department of Government Enablement */}
-        <div className="flex items-center cursor-pointer" onClick={() => setCurrentView('home')}>
+        <div className="flex items-center cursor-pointer shrink-0" onClick={() => handleNavClick('home')}>
           <img
             src="/assets/logos/dge-logo.png"
             alt="Department of Government Enablement"
-            className="h-8 sm:h-9 object-contain dark:bg-white/90 dark:px-2 dark:py-0.5 dark:rounded-lg shrink-0 transition-transform hover:scale-105"
+            className="h-6 sm:h-8 md:h-9 max-w-[110px] sm:max-w-none object-contain dark:bg-white/90 dark:px-2 dark:py-0.5 dark:rounded-lg shrink-0 transition-transform hover:scale-105"
           />
         </div>
 
-        {/* Center: Navigation Bar */}
+        {/* Center: Desktop Navigation Bar */}
         <nav className="hidden md:flex items-center gap-1 glass-level-1 p-1 rounded-xl">
           <button
-            onClick={() => setCurrentView('home')}
+            onClick={() => handleNavClick('home')}
             className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
               currentView === 'home'
                 ? 'bg-geovision-blue/10 text-geovision-blue font-extrabold shadow-2xs'
@@ -81,7 +105,7 @@ export const AppHeader: React.FC = () => {
           </button>
 
           <button
-            onClick={() => setCurrentView('map')}
+            onClick={() => handleNavClick('map')}
             className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
               currentView === 'map'
                 ? 'bg-geovision-blue/10 text-geovision-blue font-extrabold shadow-2xs'
@@ -93,7 +117,7 @@ export const AppHeader: React.FC = () => {
           </button>
 
           <button
-            onClick={() => setCurrentView('about')}
+            onClick={() => handleNavClick('about')}
             className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
               currentView === 'about'
                 ? 'bg-geovision-blue/10 text-geovision-blue font-extrabold shadow-2xs'
@@ -105,7 +129,7 @@ export const AppHeader: React.FC = () => {
           </button>
 
           <button
-            onClick={() => setCurrentView('help')}
+            onClick={() => handleNavClick('help')}
             className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
               currentView === 'help'
                 ? 'bg-geovision-blue/10 text-geovision-blue font-extrabold shadow-2xs'
@@ -118,30 +142,46 @@ export const AppHeader: React.FC = () => {
         </nav>
 
         {/* Right: Controls & Last Logo — Abu Dhabi Spatial Data */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-2.5">
+          
+          {/* Mobile Hamburger Navigation Button */}
+          <button
+            onClick={() => {
+              setMobileMenuOpen(!mobileMenuOpen);
+              setUserDropdownOpen(false);
+            }}
+            className="md:hidden p-1.5 sm:p-2 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-800 transition-colors glass-level-1 cursor-pointer"
+            title="Toggle Menu"
+          >
+            {mobileMenuOpen ? <X className="w-4 h-4 text-geovision-blue" /> : <Menu className="w-4 h-4 text-geovision-blue" />}
+          </button>
+
           {/* Language Switcher */}
           <button
             onClick={toggleLanguage}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 border border-white/60 dark:border-slate-700 hover:border-geovision-blue hover:text-geovision-blue transition-all glass-level-1"
+            className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 border border-white/60 dark:border-slate-700 hover:border-geovision-blue hover:text-geovision-blue transition-all glass-level-1"
             title="Switch Language"
           >
             <Globe className="w-3.5 h-3.5 text-geovision-blue" />
-            {t('nav.language')}
+            <span className="text-[11px] sm:text-xs">{t('nav.language')}</span>
           </button>
 
           {/* Theme Switcher */}
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-white/60 dark:hover:bg-slate-800 transition-colors glass-level-1"
+            className="p-1.5 sm:p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-white/60 dark:hover:bg-slate-800 transition-colors glass-level-1"
             title="Toggle Light/Dark Theme"
           >
-            {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4 text-amber-400" />}
+            {theme === 'light' ? <Moon className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Sun className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />}
           </button>
 
-          {/* Feedback Button */}
+          {/* Feedback Button (Desktop & Tablet) */}
           <button
-            onClick={() => setFeedbackModalOpen(true)}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-white/60 dark:hover:bg-slate-800 transition-colors glass-level-1"
+            onClick={() => {
+              setFeedbackModalOpen(true);
+              setUserDropdownOpen(false);
+            }}
+            className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-white/60 dark:hover:bg-slate-800 transition-colors glass-level-1"
           >
             <MessageSquare className="w-3.5 h-3.5 text-geovision-blue" />
             {t('nav.feedback')}
@@ -150,22 +190,25 @@ export const AppHeader: React.FC = () => {
           {/* User Account / Guest Controls */}
           {user.isGuest ? (
             <button
-              onClick={() => setLoginModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-geovision-blue text-white hover:bg-blue-600 shadow-md shadow-blue-500/25 transition-all"
+              onClick={() => {
+                setLoginModalOpen(true);
+                setUserDropdownOpen(false);
+              }}
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold bg-geovision-blue text-white hover:bg-blue-600 shadow-md shadow-blue-500/25 transition-all shrink-0 cursor-pointer"
             >
               <UserIcon className="w-3.5 h-3.5" />
-              {t('nav.signIn')}
+              <span className="hidden xs:inline">{t('nav.signIn')}</span>
             </button>
           ) : (
-            <div className="relative">
+            <div className="relative" ref={userDropdownRef}>
               <button
                 onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-white/60 dark:border-slate-700 hover:bg-white/60 dark:hover:bg-slate-800 transition-colors glass-level-1"
+                className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-xl border border-white/60 dark:border-slate-700 hover:bg-white/60 dark:hover:bg-slate-800 transition-colors glass-level-1"
               >
-                <div className="w-7 h-7 rounded-full bg-geovision-blue text-white font-bold flex items-center justify-center text-xs shadow-sm">
+                <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-geovision-blue text-white font-bold flex items-center justify-center text-xs shadow-sm">
                   {user.name.charAt(0)}
                 </div>
-                <span className="text-xs font-bold text-slate-800 dark:text-slate-200 max-w-[100px] truncate">
+                <span className="hidden sm:inline text-xs font-bold text-slate-800 dark:text-slate-200 max-w-[80px] sm:max-w-[100px] truncate">
                   {user.name}
                 </span>
                 <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
@@ -173,80 +216,143 @@ export const AppHeader: React.FC = () => {
 
               {/* User Dropdown Menu */}
               {userDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-52 glass-level-3 rounded-2xl shadow-2xl border border-white/70 dark:border-slate-800 py-1.5 z-50">
-                  <div className="px-4 py-2.5 border-b border-slate-100 dark:border-slate-800">
-                    <p className="text-xs font-bold text-slate-900 dark:text-white">{user.name}</p>
-                    <p className="text-[11px] text-slate-500 truncate">{user.email || 'user@dge.gov.ae'}</p>
+                <div className="absolute right-0 mt-2.5 w-60 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl shadow-slate-950/30 border border-slate-200/90 dark:border-slate-700/90 py-2 z-[999] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+                  {/* User Profile Header Box */}
+                  <div className="px-4 py-3 bg-slate-50 dark:bg-slate-800/90 border-b border-slate-100 dark:border-slate-800">
+                    <p className="text-xs font-black text-slate-900 dark:text-white truncate">
+                      {user.name}
+                    </p>
+                    <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                      {user.email || 'admin@fea.local'}
+                    </p>
                   </div>
 
-                  <button
-                    onClick={() => {
-                      setCurrentView('profile');
-                      setUserDropdownOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors"
-                  >
-                    <UserIcon className="w-4 h-4 text-slate-400" />
-                    {t('nav.profile')}
-                  </button>
+                  {/* Menu Options */}
+                  <div className="p-1 space-y-0.5">
+                    <button
+                      onClick={() => {
+                        setCurrentView('profile');
+                        setUserDropdownOpen(false);
+                      }}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-extrabold text-slate-800 dark:text-slate-100 hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-geovision-blue dark:hover:text-blue-300 transition-all cursor-pointer group"
+                    >
+                      <UserIcon className="w-4 h-4 text-slate-400 group-hover:text-geovision-blue dark:group-hover:text-blue-300 shrink-0" />
+                      <span>{t('nav.profile')}</span>
+                    </button>
 
-                  <button
-                    onClick={() => {
-                      if (user.isGuest) {
-                        setGuestPromptOpen(true);
-                      } else {
-                        setCurrentView('favorites');
-                      }
-                      setUserDropdownOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors"
-                  >
-                    <Star className="w-4 h-4 text-amber-500" />
-                    {t('nav.favorites')}
-                  </button>
+                    <button
+                      onClick={() => {
+                        if (user.isGuest) {
+                          setGuestPromptOpen(true);
+                        } else {
+                          setCurrentView('favorites');
+                        }
+                        setUserDropdownOpen(false);
+                      }}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-extrabold text-slate-800 dark:text-slate-100 hover:bg-amber-50/80 dark:hover:bg-slate-800 hover:text-amber-700 dark:hover:text-amber-400 transition-all cursor-pointer group"
+                    >
+                      <Star className="w-4 h-4 text-amber-500 shrink-0" />
+                      <span>{t('nav.favorites')}</span>
+                    </button>
 
-                  <button
-                    onClick={() => {
-                      if (user.isGuest) {
-                        setGuestPromptOpen(true);
-                      } else {
-                        setCurrentView('history');
-                      }
-                      setUserDropdownOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors"
-                  >
-                    <History className="w-4 h-4 text-geovision-blue" />
-                    {t('nav.history')}
-                  </button>
+                    <button
+                      onClick={() => {
+                        if (user.isGuest) {
+                          setGuestPromptOpen(true);
+                        } else {
+                          setCurrentView('history');
+                        }
+                        setUserDropdownOpen(false);
+                      }}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-extrabold text-slate-800 dark:text-slate-100 hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-geovision-blue dark:hover:text-blue-300 transition-all cursor-pointer group"
+                    >
+                      <History className="w-4 h-4 text-geovision-blue shrink-0" />
+                      <span>{t('nav.history')}</span>
+                    </button>
 
-                  <div className="border-t border-slate-100 dark:border-slate-800 my-1"></div>
+                    <div className="border-t border-slate-100 dark:border-slate-800 my-1" />
 
-                  <button
-                    onClick={handleLogout}
-                    className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors font-bold"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    {t('nav.logout')}
-                  </button>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-extrabold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-all cursor-pointer group"
+                    >
+                      <LogOut className="w-4 h-4 text-rose-500 shrink-0" />
+                      <span>{t('nav.logout')}</span>
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
           )}
 
-          <div className="w-px h-6 bg-slate-300/80 dark:bg-slate-700/80 shrink-0 ml-1" />
+          <div className="w-px h-5 sm:h-6 bg-slate-300/80 dark:bg-slate-700/80 shrink-0 hidden xs:block" />
 
           {/* Rightmost: Last Logo — Abu Dhabi Spatial Data */}
-          <div className="flex items-center cursor-pointer" onClick={() => setCurrentView('home')}>
+          <div className="flex items-center cursor-pointer shrink-0" onClick={() => setCurrentView('home')}>
             <img
               src="/assets/logos/spatial-data-logo.png"
               alt="Abu Dhabi Spatial Data"
-              className="h-7 sm:h-8 object-contain dark:bg-white/90 dark:px-2 dark:py-0.5 dark:rounded-lg shrink-0 transition-transform hover:scale-105"
+              className="h-5 sm:h-7 md:h-8 max-w-[90px] sm:max-w-none object-contain dark:bg-white/90 dark:px-2 dark:py-0.5 dark:rounded-lg shrink-0 transition-transform hover:scale-105"
             />
           </div>
         </div>
+
+        {/* Mobile Navigation Dropdown Drawer */}
+        {mobileMenuOpen && (
+          <div className="md:hidden absolute top-[calc(100%+8px)] left-0 right-0 glass-level-3 rounded-2xl p-3 shadow-2xl border border-white/80 dark:border-slate-800 space-y-1 z-[500] animate-in fade-in zoom-in-95 duration-150">
+            <button
+              onClick={() => { setCurrentView('home'); setMobileMenuOpen(false); }}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                currentView === 'home' ? 'bg-geovision-blue text-white shadow-md' : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+              }`}
+            >
+              <Home className="w-4 h-4" />
+              <span>{t('nav.home')}</span>
+            </button>
+
+            <button
+              onClick={() => { setCurrentView('map'); setMobileMenuOpen(false); }}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                currentView === 'map' ? 'bg-geovision-blue text-white shadow-md' : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+              }`}
+            >
+              <Map className="w-4 h-4" />
+              <span>{t('nav.exploreMap')}</span>
+            </button>
+
+            <button
+              onClick={() => { setCurrentView('about'); setMobileMenuOpen(false); }}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                currentView === 'about' ? 'bg-geovision-blue text-white shadow-md' : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+              }`}
+            >
+              <Info className="w-4 h-4" />
+              <span>{t('nav.about')}</span>
+            </button>
+
+            <button
+              onClick={() => { setCurrentView('help'); setMobileMenuOpen(false); }}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                currentView === 'help' ? 'bg-geovision-blue text-white shadow-md' : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+              }`}
+            >
+              <HelpCircle className="w-4 h-4" />
+              <span>{t('nav.help')}</span>
+            </button>
+
+            <button
+              onClick={() => { setFeedbackModalOpen(true); setMobileMenuOpen(false); }}
+              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+            >
+              <MessageSquare className="w-4 h-4 text-geovision-blue" />
+              <span>{t('nav.feedback')}</span>
+            </button>
+          </div>
+        )}
 
       </header>
     </div>
   );
 };
+
+export default AppHeader;

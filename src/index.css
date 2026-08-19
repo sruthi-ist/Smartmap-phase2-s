@@ -285,6 +285,22 @@ body {
   background: #1e293b;
 }
 
+/* Custom Scrollbar for Browse Side Panel */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(23, 107, 255, 0.4);
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(23, 107, 255, 0.8);
+}
+
 /* Custom Leaflet Category Pointer Pin Styles */
 .custom-leaflet-marker-pin {
   background: transparent !important;

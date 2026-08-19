@@ -1,9 +1,12 @@
 import React from 'react';
 import { AISearchBar } from '../ai/AISearchBar';
-import { Sparkles } from 'lucide-react';
+import { useAppState } from '../../context/AppStateContext';
+import { MapPin } from 'lucide-react';
 import homeVideo from '../../assets/homevideo.mp4';
 
 export const LandingPage: React.FC = () => {
+  const { language } = useAppState();
+
   return (
     <div className="relative w-full min-h-screen pt-24 sm:pt-28 pb-10 px-4 sm:px-12 md:px-16 flex flex-col items-start justify-between bg-spatial-canvas overflow-hidden">
       
@@ -17,23 +20,35 @@ export const LandingPage: React.FC = () => {
         className="absolute inset-0 w-full h-full object-cover opacity-100 pointer-events-none z-0"
       />
 
-      {/* Left-Aligned Hero & Search Launchpad without Box Container */}
-      <div className="relative z-10 w-full max-w-3xl text-left rtl:text-right space-y-6 my-auto flex flex-col items-start">
+      {/* Left-Aligned Hero & Search Launchpad */}
+      <div className="relative z-10 w-full max-w-3xl text-left rtl:text-right space-y-4 my-auto flex flex-col items-start">
         
-        {/* Eyebrow Badge */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-black glass-level-1 text-geovision-blue border border-white/90 dark:border-blue-900/50 shadow-xs">
-          <Sparkles className="w-4 h-4 text-geovision-blue animate-pulse" />
-          <span>AI-Powered Spatial Intelligence</span>
+        {/* BIG GeoVision Hero Brand Title */}
+        <div className="flex items-center gap-3">
+          <h1 className="text-5xl sm:text-7xl md:text-8xl font-black text-geovision-blue tracking-tight flex items-center gap-2 drop-shadow-md">
+            GeoVision
+            <MapPin className="w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16 text-geovision-blue fill-geovision-blue shrink-0" />
+          </h1>
         </div>
 
-        {/* Headline */}
-        <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-slate-950 dark:text-white tracking-tight leading-tight max-w-2xl drop-shadow-md">
-          Ask. Explore. Understand Abu Dhabi.
-        </h1>
+        {/* Small Elegant Sub-Headline */}
+        <h2 className="text-lg sm:text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight drop-shadow-sm">
+          {language === 'ar' ? (
+            <>
+              استكشف البيانات المكانية في <span className="text-geovision-blue font-black underline underline-offset-4 decoration-blue-400">أبوظبي</span>
+            </>
+          ) : (
+            <>
+              Explore Public Data Across <span className="text-geovision-blue font-black underline underline-offset-4 decoration-blue-400">Abu Dhabi</span>
+            </>
+          )}
+        </h2>
 
-        {/* Subtitle */}
-        <p className="text-xs sm:text-base text-slate-900 dark:text-slate-100 max-w-xl font-bold leading-relaxed drop-shadow-sm">
-          Interact naturally with trusted spatial information, discover places, and analyze locations through GeoVision.
+        {/* Description Subtitle */}
+        <p className="text-xs sm:text-sm sm:text-base text-slate-800 dark:text-slate-100 max-w-xl font-bold leading-relaxed drop-shadow-xs">
+          {language === 'ar'
+            ? 'ابحث عن أسئلة باللغة الطبيعية، واكتشف البيانات المكانية الموثوقة، واستكشف الخرائط التفاعلية في جميع أنحاء الإمارة.'
+            : 'Search natural language questions, discover authoritative public datasets, and explore interactive maps across the emirate.'}
         </p>
 
         {/* Main Glass AI Search Bar */}
