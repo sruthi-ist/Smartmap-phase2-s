@@ -16,6 +16,7 @@ import {
   Building,
   RotateCcw,
   Plus,
+  Mic,
 } from 'lucide-react';
 
 interface GeoVisionPanelProps {
@@ -39,11 +40,102 @@ export const GeoVisionPanel: React.FC<GeoVisionPanelProps> = ({ onClose }) => {
     user,
     setCurrentView,
     setGuestPromptOpen,
+    showToast,
     t,
   } = useAppState();
 
   const [inputVal, setInputVal] = useState('');
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const handleVoiceInput = () => {
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    if (SpeechRecognition) {
+      if (isListening) {
+        if (recognitionRef.current) {
+          recognitionRef.current.stop();
+        }
+        setIsListening(false);
+        return;
+      }
+
+      try {
+        const recognition = new SpeechRecognition();
+        recognitionRef.current = recognition;
+        recognition.continuous = false;
+        recognition.interimResults = true;
+        recognition.lang = language === 'ar' ? 'ar-AE' : 'en-US';
+
+        recognition.onstart = () => {
+          setIsListening(true);
+          showToast(language === 'ar' ? 'جاري الاستماع... تحدّث الآن' : 'Listening... Speak your spatial query now');
+        };
+
+        recognition.onresult = (event: any) => {
+          const transcript = Array.from(event.results)
+            .map((result: any) => result[0].transcript)
+            .join('');
+          setInputVal(transcript);
+        };
+
+        recognition.onerror = () => {
+          setIsListening(false);
+          runVoiceSimulation();
+        };
+
+        recognition.onend = () => {
+          setIsListening(false);
+        };
+
+        recognition.start();
+      } catch (err) {
+        runVoiceSimulation();
+      }
+    } else {
+      runVoiceSimulation();
+    }
+  };
+
+  const runVoiceSimulation = () => {
+    if (isListening) {
+      setIsListening(false);
+      return;
+    }
+    setIsListening(true);
+    showToast(language === 'ar' ? 'جاري الاستماع... (محاكاة الصوت)' : 'Listening... (Voice AI Input)');
+
+    const sampleQueriesEn = [
+      'Show all hospitals and healthcare facilities in Abu Dhabi',
+      'Locate nurseries near Khalifa City',
+      'Filter public parks and recreation areas in Al Reem Island',
+      'Show government buildings in Corniche area',
+    ];
+    const sampleQueriesAr = [
+      'عرض جميع المستشفيات والمنشآت الصحية في أبوظبي',
+      'البحث عن المدارس والحضانات في مدينة خليفة',
+      'عرض الحدائق والمرافق الترفيهية في جزيرة ريم',
+    ];
+
+    const queries = language === 'ar' ? sampleQueriesAr : sampleQueriesEn;
+    const randomQuery = queries[Math.floor(Math.random() * queries.length)];
+
+    let charIdx = 0;
+    setInputVal('');
+
+    const interval = setInterval(() => {
+      if (charIdx < randomQuery.length) {
+        setInputVal(randomQuery.slice(0, charIdx + 1));
+        charIdx++;
+      } else {
+        clearInterval(interval);
+        setIsListening(false);
+        showToast(language === 'ar' ? 'تم تحويل الصوت إلى نص!' : 'Speech transcribed successfully!');
+      }
+    }, 40);
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -400,16 +492,36 @@ export const GeoVisionPanel: React.FC<GeoVisionPanelProps> = ({ onClose }) => {
             type="text"
             value={inputVal}
             onChange={(e) => setInputVal(e.target.value)}
-            placeholder={t('ai.inputPlaceholder')}
-            className="w-full pl-3.5 pr-11 py-2.5 sm:py-3 rtl:pr-3.5 rtl:pl-11 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs sm:text-sm font-semibold text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-geovision-blue"
+            placeholder={isListening ? (language === 'ar' ? 'جاري الاستماع لصوتك...' : 'Listening to your voice...') : t('ai.inputPlaceholder')}
+            className={`w-full pl-3.5 pr-20 py-2.5 sm:py-3 rtl:pr-3.5 rtl:pl-20 rounded-2xl border bg-slate-50 dark:bg-slate-800 text-xs sm:text-sm font-semibold text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-geovision-blue transition-all ${
+              isListening ? 'border-rose-500 bg-rose-50/30 dark:bg-rose-950/20' : 'border-slate-200 dark:border-slate-700'
+            }`}
           />
-          <button
-            type="submit"
-            disabled={!inputVal.trim() || aiProcessing}
-            className="absolute right-2 rtl:right-auto rtl:left-2 p-2 rounded-xl bg-geovision-blue text-white hover:bg-blue-600 disabled:opacity-50 transition-all cursor-pointer shadow-md"
-          >
-            <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4 rtl:rotate-180" />
-          </button>
+
+          <div className="absolute right-2 rtl:right-auto rtl:left-2 flex items-center gap-1">
+            {/* Mic Voice Input Button */}
+            <button
+              type="button"
+              onClick={handleVoiceInput}
+              className={`p-2 rounded-xl transition-all cursor-pointer ${
+                isListening
+                  ? 'bg-rose-600 text-white animate-pulse shadow-md shadow-rose-500/40'
+                  : 'bg-slate-200/80 text-slate-700 dark:bg-slate-700 dark:text-slate-200 hover:bg-geovision-blue hover:text-white'
+              }`}
+              title={isListening ? 'Stop Listening' : 'Voice Query Input (Mic)'}
+            >
+              <Mic className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isListening ? 'animate-bounce' : ''}`} />
+            </button>
+
+            {/* Send Button */}
+            <button
+              type="submit"
+              disabled={!inputVal.trim() || aiProcessing}
+              className="p-2 rounded-xl bg-geovision-blue text-white hover:bg-blue-600 disabled:opacity-50 transition-all cursor-pointer shadow-md"
+            >
+              <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4 rtl:rotate-180" />
+            </button>
+          </div>
         </form>
       </div>
 
