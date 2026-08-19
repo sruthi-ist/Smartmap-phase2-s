@@ -57,14 +57,14 @@ export const AISearchBar: React.FC<AISearchBarProps> = ({ compact = false }) => 
       {/* Main 72px Floating AI Command Bar */}
       <form
         onSubmit={handleSubmit}
-        className={`relative w-full glass-panel rounded-3xl shadow-xl border transition-all duration-200 focus-within:ring-2 focus-within:ring-geovision-blue focus-within:border-geovision-blue glow-blue ${
+        className={`relative w-full glass-panel rounded-3xl shadow-xl border transition-all duration-200 focus-within:ring-2 focus-within:ring-[#215A9E] focus-within:border-[#215A9E] glow-blue ${
           compact ? 'p-2' : 'p-3 sm:p-3.5 min-h-[68px] sm:min-h-[72px]'
         }`}
       >
         <div className="flex items-center gap-3 px-2 h-full">
           
           {/* Animated GeoVision AI Icon */}
-          <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-geovision-blue text-white shadow-md shadow-blue-500/30 shrink-0">
+          <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-[#215A9E] text-white shadow-md shadow-[#215A9E]/30 shrink-0">
             <Sparkles className="w-5 h-5 animate-pulse" />
           </div>
 
@@ -74,24 +74,24 @@ export const AISearchBar: React.FC<AISearchBarProps> = ({ compact = false }) => 
             value={queryText}
             onChange={(e) => setQueryText(e.target.value)}
             placeholder={placeholders[placeholderIndex]}
-            className="w-full bg-transparent text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm sm:text-base font-semibold focus:outline-hidden"
+            className="w-full bg-transparent text-[#063360] dark:text-white placeholder-[#545860] dark:placeholder-slate-400 text-sm sm:text-base font-semibold focus:outline-hidden"
           />
 
           {/* Microphone Voice Button */}
           <button
             type="button"
             onClick={() => setVoiceOpen(true)}
-            className="p-2.5 text-slate-400 hover:text-geovision-blue dark:hover:text-blue-400 rounded-2xl hover:bg-blue-50 dark:hover:bg-slate-800 transition-all shrink-0"
+            className="p-2.5 text-[#545860] hover:text-[#215A9E] dark:hover:text-[#7DA1C4] rounded-2xl hover:bg-[#7DA1C4]/15 dark:hover:bg-slate-800 transition-all shrink-0 cursor-pointer"
             title="Voice Search"
           >
-            <Mic className="w-5 h-5 text-geovision-blue" />
+            <Mic className="w-5 h-5 text-[#215A9E]" />
           </button>
 
           {/* Submit Arrow Button */}
           <button
             type="submit"
             disabled={!queryText.trim()}
-            className="flex items-center justify-center w-10 h-10 rounded-2xl bg-geovision-blue text-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-blue-600 shadow-lg shadow-blue-500/30 transition-all shrink-0"
+            className="flex items-center justify-center w-10 h-10 rounded-2xl bg-[#215A9E] text-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#063360] shadow-lg shadow-[#215A9E]/30 transition-all shrink-0 cursor-pointer"
           >
             <ArrowRight className="w-5 h-5 rtl:rotate-180" />
           </button>
@@ -101,15 +101,15 @@ export const AISearchBar: React.FC<AISearchBarProps> = ({ compact = false }) => 
       {/* Suggested Prompt Chips */}
       {!compact && (
         <div className="w-full flex flex-wrap items-center justify-start gap-2 mt-1">
-          <span className="text-xs font-black text-slate-800 dark:text-slate-200 mr-1 flex items-center gap-1">
-            <Compass className="w-3.5 h-3.5 text-geovision-blue" />
+          <span className="text-xs font-black text-[#063360] dark:text-slate-200 mr-1 flex items-center gap-1">
+            <Compass className="w-3.5 h-3.5 text-[#215A9E]" />
             {t('hero.suggestedLabel')}
           </span>
           {suggestedKeys.map((key, idx) => (
             <button
               key={idx}
               onClick={() => handleSuggestedClick(key)}
-              className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-white/95 dark:bg-slate-900/95 text-geovision-blue dark:text-blue-300 border border-blue-200 dark:border-slate-700 hover:border-geovision-blue hover:bg-geovision-blue hover:text-white dark:hover:bg-geovision-blue dark:hover:text-white shadow-xs transition-all transform hover:-translate-y-0.5 backdrop-blur-md cursor-pointer"
+              className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#7DA1C4]/10 dark:bg-slate-900/90 text-[#063360] dark:text-[#7DA1C4] border border-[#7DA1C4]/30 dark:border-slate-700 hover:border-[#215A9E] hover:bg-[#215A9E] hover:text-white dark:hover:bg-[#215A9E] dark:hover:text-white shadow-2xs transition-all transform hover:-translate-y-0.5 backdrop-blur-md cursor-pointer"
             >
               {t(key)}
             </button>

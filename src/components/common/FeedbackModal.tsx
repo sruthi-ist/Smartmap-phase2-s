@@ -30,14 +30,14 @@ export const FeedbackModal: React.FC = () => {
         </button>
 
         <div className="flex items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
-          <div className="w-10 h-10 rounded-2xl bg-geovision-blue text-white flex items-center justify-center font-bold shadow-md shadow-blue-500/30">
+          <div className="w-10 h-10 rounded-2xl bg-[#215A9E] text-white flex items-center justify-center font-bold shadow-md shadow-[#215A9E]/30">
             <MessageSquare className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-lg font-black text-slate-900 dark:text-white">
+            <h2 className="text-lg font-black text-[#063360] dark:text-white">
               {t('feedback.title')}
             </h2>
-            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+            <p className="text-xs font-semibold text-[#545860] dark:text-slate-400">
               Help us improve DGE GeoVision GIS experience
             </p>
           </div>
@@ -45,9 +45,9 @@ export const FeedbackModal: React.FC = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           
-          {/* 5-Star Rating Selector */}
+          {/* 5-Star Rating Selector (DGE On-Brand Tech Blue Fill) */}
           <div className="space-y-1.5 text-center">
-            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
+            <label className="text-xs font-bold text-[#063360] dark:text-slate-300 block">
               {t('feedback.ratingLabel')}
             </label>
             <div className="flex items-center justify-center gap-2">
@@ -56,12 +56,12 @@ export const FeedbackModal: React.FC = () => {
                   type="button"
                   key={star}
                   onClick={() => setRating(star)}
-                  className="p-1 hover:scale-125 transition-transform"
+                  className="p-1 hover:scale-125 transition-transform cursor-pointer"
                 >
                   <Star
                     className={`w-7 h-7 ${
                       star <= rating
-                        ? 'fill-amber-400 text-amber-500'
+                        ? 'fill-[#215A9E] text-[#215A9E]'
                         : 'text-slate-300 dark:text-slate-700'
                     }`}
                   />
@@ -72,7 +72,7 @@ export const FeedbackModal: React.FC = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+              <label className="text-xs font-bold text-[#063360] dark:text-slate-300">
                 {t('feedback.nameLabel')}
               </label>
               <input
@@ -81,12 +81,12 @@ export const FeedbackModal: React.FC = () => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Ahmed Al Mansoori"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-white/70 dark:border-slate-800 bg-white/70 dark:bg-slate-900 text-xs sm:text-sm font-semibold text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-geovision-blue"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs sm:text-sm font-semibold text-[#063360] dark:text-white focus:outline-hidden focus:ring-2 focus:ring-[#215A9E]"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+              <label className="text-xs font-bold text-[#063360] dark:text-slate-300">
                 {t('feedback.emailLabel')}
               </label>
               <input
@@ -95,7 +95,7 @@ export const FeedbackModal: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="email@example.com"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-white/70 dark:border-slate-800 bg-white/70 dark:bg-slate-900 text-xs sm:text-sm font-semibold text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-geovision-blue"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs sm:text-sm font-semibold text-[#063360] dark:text-white focus:outline-hidden focus:ring-2 focus:ring-[#215A9E]"
               />
             </div>
           </div>

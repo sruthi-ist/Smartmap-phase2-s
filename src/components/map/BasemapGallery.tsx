@@ -4,12 +4,12 @@ import type { BasemapType } from '../../types';
 import { Map, Layers, Sun, Globe, X } from 'lucide-react';
 
 export const BasemapGallery: React.FC = () => {
-  const { activeBasemap, setActiveBasemap, setActiveTool, t } = useAppState();
+  const { activeBasemap, setActiveBasemap, setActiveTool, language, t } = useAppState();
 
-  const basemaps: { id: BasemapType; labelKey: string; icon: React.FC<{ className?: string }>; desc: string }[] = [
-    { id: 'light', labelKey: 'basemap.light', icon: Sun, desc: 'Clean high contrast' },
-    { id: 'streets', labelKey: 'basemap.streets', icon: Map, desc: 'Standard vector map' },
-    { id: 'satellite', labelKey: 'basemap.satellite', icon: Globe, desc: 'High resolution imagery' },
+  const basemaps: { id: BasemapType; labelKey: string; icon: React.FC<{ className?: string }>; descEn: string; descAr: string }[] = [
+    { id: 'light', labelKey: 'basemap.light', icon: Sun, descEn: 'Clean high contrast', descAr: 'خريطة فاتحة عالية التباين' },
+    { id: 'streets', labelKey: 'basemap.streets', icon: Map, descEn: 'Standard vector map', descAr: 'خريطة شوارع موجهة' },
+    { id: 'satellite', labelKey: 'basemap.satellite', icon: Globe, descEn: 'High resolution imagery', descAr: 'صور أقمار صناعية بدقة عالية' },
   ];
 
   return (
@@ -48,7 +48,9 @@ export const BasemapGallery: React.FC = () => {
             >
               <IconComp className="w-6 h-6 mb-1.5" />
               <span className="text-xs font-extrabold">{t(bm.labelKey)}</span>
-              <span className="text-[10px] text-slate-400 dark:text-slate-300 font-semibold">{bm.desc}</span>
+              <span className="text-[10px] text-slate-400 dark:text-slate-300 font-semibold">
+                {language === 'ar' ? bm.descAr : bm.descEn}
+              </span>
             </button>
           );
         })}

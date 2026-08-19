@@ -37,24 +37,24 @@ export const ProfilePage: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-16 space-y-8 bg-spatial-canvas min-h-screen">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 sm:pt-32 lg:pt-36 pb-16 space-y-8 bg-spatial-canvas min-h-screen">
       
       {/* WOW Full-Width Hero Banner */}
-      <div className="relative overflow-hidden p-6 sm:p-10 rounded-3xl bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white shadow-2xl border border-blue-900/60 glow-blue">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-geovision-blue/20 rounded-full blur-3xl -z-0 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl -z-0 pointer-events-none" />
+      <div className="relative overflow-hidden p-6 sm:p-10 rounded-3xl bg-gradient-to-r from-[#063360] via-[#215A9E] to-[#041F3B] text-white shadow-2xl border border-[#7DA1C4]/30 glow-blue">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-[#215A9E]/20 rounded-full blur-3xl -z-0 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-[#7DA1C4]/15 rounded-full blur-3xl -z-0 pointer-events-none" />
 
         <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left rtl:sm:text-right">
             {/* Avatar Circle with Glow Ring */}
             <div className="relative">
-              <div className="w-24 h-24 rounded-3xl bg-gradient-to-tr from-geovision-blue via-cyan-400 to-indigo-500 p-1 shadow-2xl shadow-blue-500/40">
-                <div className="w-full h-full rounded-[22px] bg-slate-950 flex items-center justify-center text-4xl font-black text-white">
+              <div className="w-24 h-24 rounded-3xl bg-gradient-to-tr from-[#215A9E] via-[#7DA1C4] to-[#063360] p-1 shadow-2xl shadow-[#215A9E]/40">
+                <div className="w-full h-full rounded-[22px] bg-[#041F3B] flex items-center justify-center text-4xl font-black text-white">
                   {user.name.charAt(0)}
                 </div>
               </div>
               {!user.isGuest && (
-                <div className="absolute -bottom-1 -right-1 bg-emerald-500 text-white p-1.5 rounded-full border-2 border-slate-900 shadow-md" title="Verified Abu Dhabi Citizen">
+                <div className="absolute -bottom-1 -right-1 bg-emerald-500 text-white p-1.5 rounded-full border-2 border-[#063360] shadow-md" title="Verified Abu Dhabi Citizen">
                   <ShieldCheck className="w-4 h-4" />
                 </div>
               )}
@@ -63,15 +63,15 @@ export const ProfilePage: React.FC = () => {
             <div className="space-y-2">
               <div className="flex items-center justify-center sm:justify-start rtl:sm:justify-end gap-3 flex-wrap">
                 <h1 className="text-2xl sm:text-3xl font-black tracking-tight">{user.name}</h1>
-                <span className="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-white/10 text-cyan-300 border border-white/20 backdrop-blur-md">
+                <span className="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-white/10 text-[#7DA1C4] border border-white/20 backdrop-blur-md">
                   {user.isGuest ? 'Guest Session' : 'Verified Citizen'}
                 </span>
               </div>
               <p className="text-xs sm:text-sm font-bold text-slate-300">
                 {user.email || 'admin@fea.local'}
               </p>
-              <p className="text-xs font-black text-emerald-400 flex items-center justify-center sm:justify-start rtl:sm:justify-end gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block" />
+              <p className="text-xs font-black text-[#7DA1C4] flex items-center justify-center sm:justify-start rtl:sm:justify-end gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-[#7DA1C4] animate-ping inline-block" />
                 <span>Department of Government Enablement — Abu Dhabi</span>
               </p>
             </div>
@@ -80,7 +80,7 @@ export const ProfilePage: React.FC = () => {
           <div className="flex flex-wrap items-center gap-3 shrink-0">
             <button
               onClick={() => setCurrentView('map')}
-              className="flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-geovision-blue hover:bg-blue-600 text-white font-black text-xs shadow-xl shadow-blue-500/30 transition-all cursor-pointer"
+              className="flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-[#215A9E] hover:bg-[#063360] text-white font-black text-xs shadow-xl shadow-[#215A9E]/30 transition-all cursor-pointer"
             >
               <Map className="w-4 h-4" />
               <span>Launch Spatial Workspace</span>

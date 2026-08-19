@@ -15,20 +15,20 @@ export const AboutUsPage: React.FC = () => {
   const { t, setCurrentView } = useAppState();
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-16 space-y-8 bg-spatial-canvas min-h-screen">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 sm:pt-32 lg:pt-36 pb-16 space-y-8 bg-spatial-canvas min-h-screen">
       
       {/* WOW Full-Width Hero Branding Banner */}
-      <div className="relative overflow-hidden p-6 sm:p-12 rounded-3xl bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white shadow-2xl border border-blue-900/60 glow-blue">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-geovision-blue/20 rounded-full blur-3xl -z-0 pointer-events-none" />
+      <div className="relative overflow-hidden p-6 sm:p-12 rounded-3xl bg-gradient-to-r from-[#063360] via-[#215A9E] to-[#041F3B] text-white shadow-2xl border border-[#7DA1C4]/30 glow-blue">
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#215A9E]/20 rounded-full blur-3xl -z-0 pointer-events-none" />
 
         <div className="relative z-10 space-y-6">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-3xl bg-gradient-to-tr from-geovision-blue to-cyan-400 text-white flex items-center justify-center font-black shadow-xl shadow-blue-500/40 shrink-0">
+            <div className="w-16 h-16 rounded-3xl bg-gradient-to-tr from-[#215A9E] to-[#7DA1C4] text-white flex items-center justify-center font-black shadow-xl shadow-[#215A9E]/40 shrink-0">
               <Info className="w-8 h-8 text-white" />
             </div>
             <div>
               <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight">{t('about.title')}</h1>
-              <p className="text-xs sm:text-sm text-cyan-400 font-black uppercase tracking-widest mt-1">
+              <p className="text-xs sm:text-sm text-[#7DA1C4] font-black uppercase tracking-widest mt-1">
                 Department of Government Enablement — Abu Dhabi Spatial Data Infrastructure
               </p>
             </div>
@@ -41,14 +41,14 @@ export const AboutUsPage: React.FC = () => {
           <div className="pt-2 flex flex-wrap items-center gap-4">
             <button
               onClick={() => setCurrentView('map')}
-              className="flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-geovision-blue hover:bg-blue-600 text-white font-black text-xs sm:text-sm shadow-xl shadow-blue-500/30 transition-all cursor-pointer"
+              className="flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-[#215A9E] hover:bg-[#063360] text-white font-black text-xs sm:text-sm shadow-xl shadow-[#215A9E]/30 transition-all cursor-pointer"
             >
               <Map className="w-4 h-4" />
               <span>Launch Interactive Map Workspace</span>
               <ArrowRight className="w-4 h-4 rtl:rotate-180" />
             </button>
             <div className="px-5 py-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 text-xs font-black text-slate-200 flex items-center gap-2.5">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              <ShieldCheck className="w-4 h-4 text-[#7DA1C4]" />
               <span>Official Abu Dhabi Government Spatial Data Platform</span>
             </div>
           </div>

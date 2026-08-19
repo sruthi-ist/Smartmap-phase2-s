@@ -10,6 +10,7 @@ export const BufferTool: React.FC = () => {
     sendAIMessage,
     showToast,
     filteredFeatures,
+    language,
     t,
   } = useAppState();
 
@@ -18,16 +19,24 @@ export const BufferTool: React.FC = () => {
 
   const handleApply = () => {
     setApplied(true);
-    showToast(`5 km Buffer spatial filter applied (${filteredFeatures.length} features found)`);
+    showToast(
+      language === 'ar'
+        ? `تم تطبيق النطاق المكانى ${bufferRadiusKm} كم (تم العثور على ${filteredFeatures.length} معلم)`
+        : `${bufferRadiusKm} km Buffer spatial filter applied (${filteredFeatures.length} features found)`
+    );
   };
 
   const handleClear = () => {
     setApplied(false);
-    showToast('Buffer ring cleared');
+    showToast(language === 'ar' ? 'تم إزالة حلقة النطاق' : 'Buffer ring cleared');
   };
 
   const handleAskAIBuffer = () => {
-    sendAIMessage(`Analyze all features within ${bufferRadiusKm} km radius of Khalifa City.`);
+    sendAIMessage(
+      language === 'ar'
+        ? `تحليل جميع المعالم في نطاق ${bufferRadiusKm} كم من مدينة خليفة.`
+        : `Analyze all features within ${bufferRadiusKm} km radius of Khalifa City.`
+    );
   };
 
   return (
@@ -56,19 +65,27 @@ export const BufferTool: React.FC = () => {
           {t('buffer.step1')}
         </label>
         <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 dark:bg-slate-900 rounded-2xl">
-          {(['feature', 'point', 'aoi'] as const).map((tType) => (
-            <button
-              key={tType}
-              onClick={() => setTargetType(tType)}
-              className={`py-1.5 rounded-xl text-xs font-bold capitalize transition-colors ${
-                targetType === tType
-                  ? 'bg-geovision-blue text-white shadow-md'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-white'
-              }`}
-            >
-              {tType}
-            </button>
-          ))}
+          {(['feature', 'point', 'aoi'] as const).map((tType) => {
+            const label =
+              tType === 'feature'
+                ? (language === 'ar' ? 'معلم' : 'Feature')
+                : tType === 'point'
+                ? (language === 'ar' ? 'نقطة' : 'Point')
+                : (language === 'ar' ? 'منطقة' : 'AOI');
+            return (
+              <button
+                key={tType}
+                onClick={() => setTargetType(tType)}
+                className={`py-1.5 rounded-xl text-xs font-bold transition-colors ${
+                  targetType === tType
+                    ? 'bg-geovision-blue text-white shadow-md'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-white'
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -79,7 +96,7 @@ export const BufferTool: React.FC = () => {
             {t('buffer.step2')}
           </label>
           <span className="text-xs font-black text-geovision-blue">
-            {bufferRadiusKm} km
+            {bufferRadiusKm} {language === 'ar' ? 'كم' : 'km'}
           </span>
         </div>
 
@@ -92,10 +109,10 @@ export const BufferTool: React.FC = () => {
           className="w-full accent-geovision-blue cursor-pointer"
         />
         <div className="flex justify-between text-[10px] text-slate-400 dark:text-slate-300 font-extrabold">
-          <span>1 km</span>
-          <span>5 km</span>
-          <span>10 km</span>
-          <span>20 km</span>
+          <span>1 {language === 'ar' ? 'كم' : 'km'}</span>
+          <span>5 {language === 'ar' ? 'كم' : 'km'}</span>
+          <span>10 {language === 'ar' ? 'كم' : 'km'}</span>
+          <span>20 {language === 'ar' ? 'كم' : 'km'}</span>
         </div>
       </div>
 
@@ -115,7 +132,7 @@ export const BufferTool: React.FC = () => {
               {filteredFeatures.length} {t('buffer.resultsFound')}
             </span>
             <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-300">
-              Proximity Radius: {bufferRadiusKm} km
+              {language === 'ar' ? `نطاق المسافة: ${bufferRadiusKm} كم` : `Proximity Radius: ${bufferRadiusKm} km`}
             </span>
           </div>
 
@@ -125,7 +142,7 @@ export const BufferTool: React.FC = () => {
               className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-geovision-blue text-white text-xs font-bold hover:bg-blue-600 shadow-md transition-colors"
             >
               <Sparkles className="w-3.5 h-3.5" />
-              Ask GeoVision
+              {language === 'ar' ? 'اسأل الذكاء الاصطناعي' : 'Ask GeoVision'}
             </button>
             <button
               onClick={handleClear}

@@ -31,7 +31,7 @@ export const MapCategoryDock: React.FC = () => {
             {/* Explore Trigger Button (Renamed from Checklist) */}
             <button
               onClick={() => setChecklistOpen(true)}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-geovision-blue text-white shadow-md shadow-blue-500/25 hover:bg-blue-600 active:scale-95 transition-all shrink-0 cursor-pointer"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#215A9E] text-white shadow-md shadow-[#215A9E]/25 hover:bg-[#063360] active:scale-95 transition-all shrink-0 cursor-pointer"
               title="Explore Datasets & Categories"
             >
               <Filter className="w-3.5 h-3.5" />
@@ -45,7 +45,7 @@ export const MapCategoryDock: React.FC = () => {
             {/* Plus / More Categories Button */}
             <button
               onClick={() => setChecklistOpen(true)}
-              className="p-1.5 rounded-full text-slate-600 dark:text-slate-200 hover:text-geovision-blue hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0 cursor-pointer"
+              className="p-1.5 rounded-full text-[#545860] dark:text-slate-200 hover:text-[#063360] hover:bg-[#7DA1C4]/20 transition-colors shrink-0 cursor-pointer"
               title="Explore Category Checklist"
             >
               <Plus className="w-4 h-4" />
@@ -67,13 +67,13 @@ export const MapCategoryDock: React.FC = () => {
                   onClick={() => toggleCategorySelection(cat.id)}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all shrink-0 cursor-pointer ${
                     isSelected
-                      ? 'bg-blue-50 dark:bg-blue-950/90 text-geovision-blue dark:text-blue-300 border border-geovision-blue/40 shadow-xs font-bold'
-                      : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/90 hover:text-geovision-blue'
+                      ? 'bg-[#215A9E]/15 dark:bg-[#215A9E]/30 text-[#215A9E] dark:text-[#7DA1C4] border border-[#215A9E]/40 shadow-2xs font-extrabold'
+                      : 'text-[#545860] dark:text-slate-200 hover:bg-[#7DA1C4]/15 dark:hover:bg-slate-800/90 hover:text-[#063360]'
                   }`}
                 >
                   <IconComp className="w-3.5 h-3.5" />
                   <span>{language === 'ar' ? cat.nameAr : cat.nameEn}</span>
-                  {isSelected && <Check className="w-3.5 h-3.5 text-geovision-blue stroke-[3]" />}
+                  {isSelected && <Check className="w-3.5 h-3.5 text-[#215A9E] stroke-[3]" />}
                 </button>
               );
             })}

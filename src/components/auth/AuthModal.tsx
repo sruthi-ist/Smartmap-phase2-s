@@ -93,8 +93,8 @@ export const AuthModal: React.FC = () => {
               onClick={() => setTab('signin')}
               className={`py-2 rounded-xl transition-all cursor-pointer ${
                 tab === 'signin'
-                  ? 'bg-geovision-blue text-white shadow-md shadow-blue-500/25'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                  ? 'bg-[#215A9E] text-white shadow-md shadow-[#215A9E]/25 font-black'
+                  : 'text-[#545860] dark:text-slate-300 hover:text-[#063360] dark:hover:text-white'
               }`}
             >
               {language === 'ar' ? 'تسجيل الدخول' : 'Sign In'}
@@ -103,8 +103,8 @@ export const AuthModal: React.FC = () => {
               onClick={() => setTab('signup')}
               className={`py-2 rounded-xl transition-all cursor-pointer ${
                 tab === 'signup'
-                  ? 'bg-geovision-blue text-white shadow-md shadow-blue-500/25'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                  ? 'bg-[#215A9E] text-white shadow-md shadow-[#215A9E]/25 font-black'
+                  : 'text-[#545860] dark:text-slate-300 hover:text-[#063360] dark:hover:text-white'
               }`}
             >
               {language === 'ar' ? 'إنشاء حساب' : 'Register'}
@@ -116,7 +116,7 @@ export const AuthModal: React.FC = () => {
         {tab === 'signin' && (
           <form onSubmit={handleSignIn} className="space-y-4">
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+              <label className="text-xs font-bold text-[#063360] dark:text-slate-300">
                 {language === 'ar' ? 'البريد الإلكتروني' : 'Email Address'}
               </label>
               <div className="relative">
@@ -127,20 +127,20 @@ export const AuthModal: React.FC = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="ahmed.almansoori@dge.gov.ae"
-                  className="w-full pl-10 pr-4 py-2.5 rtl:pr-10 rtl:pl-4 rounded-xl border border-white/70 dark:border-slate-800 bg-white/70 dark:bg-slate-900 text-xs sm:text-sm font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-geovision-blue focus:outline-hidden"
+                  className="w-full pl-10 pr-4 py-2.5 rtl:pr-10 rtl:pl-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs sm:text-sm font-semibold text-[#063360] dark:text-white focus:ring-2 focus:ring-[#215A9E] focus:outline-hidden"
                 />
               </div>
             </div>
 
             <div className="space-y-1">
               <div className="flex items-center justify-between text-xs">
-                <label className="font-bold text-slate-700 dark:text-slate-300">
+                <label className="font-bold text-[#063360] dark:text-slate-300">
                   {language === 'ar' ? 'كلمة المرور' : 'Password'}
                 </label>
                 <button
                   type="button"
                   onClick={() => setTab('forgot')}
-                  className="font-bold text-geovision-blue hover:underline cursor-pointer"
+                  className="font-bold text-[#215A9E] hover:underline cursor-pointer"
                 >
                   {language === 'ar' ? 'نسيت كلمة المرور؟' : 'Forgot password?'}
                 </button>
@@ -153,7 +153,7 @@ export const AuthModal: React.FC = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pl-10 pr-10 py-2.5 rtl:pr-10 rtl:pl-10 rounded-xl border border-white/70 dark:border-slate-800 bg-white/70 dark:bg-slate-900 text-xs sm:text-sm font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-geovision-blue focus:outline-hidden"
+                  className="w-full pl-10 pr-10 py-2.5 rtl:pr-10 rtl:pl-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs sm:text-sm font-semibold text-[#063360] dark:text-white focus:ring-2 focus:ring-[#215A9E] focus:outline-hidden"
                 />
                 <button
                   type="button"
@@ -167,7 +167,7 @@ export const AuthModal: React.FC = () => {
 
             <button
               type="submit"
-              className="w-full py-3 rounded-2xl bg-geovision-blue text-white text-xs font-black hover:bg-blue-600 shadow-xl shadow-blue-500/30 transition-all cursor-pointer flex items-center justify-center gap-2"
+              className="w-full py-3 rounded-2xl bg-[#215A9E] text-white text-xs font-black hover:bg-[#063360] shadow-xl shadow-[#215A9E]/30 transition-all cursor-pointer flex items-center justify-center gap-2"
             >
               <span>{language === 'ar' ? 'تسجيل الدخول للمنصة' : 'Sign In to Platform'}</span>
               <ArrowRight className="w-4 h-4 rtl:rotate-180" />

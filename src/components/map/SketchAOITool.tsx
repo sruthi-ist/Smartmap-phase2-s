@@ -36,13 +36,21 @@ export const SketchAOITool: React.FC = () => {
   const getHelpText = () => {
     switch (drawTool) {
       case 'point':
-        return '📍 Click anywhere on the map to drop a point pin';
+        return language === 'ar'
+          ? '📍 انقر في أي مكان على الخريطة لإسقاط نقطة'
+          : '📍 Click anywhere on the map to drop a point pin';
       case 'circle':
-        return '⭕ Click center point on map, move cursor to adjust circle radius, click again to lock';
+        return language === 'ar'
+          ? '⭕ انقر لتحديد المركز ثم حرّك الماوس وانقر لتأكيد حجم الدائرة'
+          : '⭕ Click center point on map, move cursor to adjust circle radius, click again to lock';
       case 'rect':
-        return '█ Click start corner on map, move cursor to expand box, click again to lock';
+        return language === 'ar'
+          ? '█ انقر لتحديد الزاوية الأولى ثم حرّك الماوس وانقر لتأكيد حجم المستطيل'
+          : '█ Click start corner on map, move cursor to expand box, click again to lock';
       case 'polygon':
-        return '⬡ Click points on map to add vertices. Double-click to complete boundary';
+        return language === 'ar'
+          ? '⬡ انقر على الخريطة لإضافة النقاط. انقر مرتين لإكمال حدود المضلع'
+          : '⬡ Click points on map to add vertices. Double-click to complete boundary';
     }
   };
 

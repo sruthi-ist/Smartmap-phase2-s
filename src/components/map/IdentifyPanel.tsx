@@ -19,7 +19,11 @@ export const IdentifyPanel: React.FC = () => {
 
   const handleAskAI = () => {
     const featName = language === 'ar' ? selectedFeature.nameAr : selectedFeature.nameEn;
-    sendAIMessage(`Tell me more about ${featName} and its surrounding spatial services.`);
+    sendAIMessage(
+      language === 'ar'
+        ? `أخبرني بالمزيد عن ${featName} والخدمات المكانية المحيطة به.`
+        : `Tell me more about ${featName} and its surrounding spatial services.`
+    );
   };
 
   const handleSaveFav = () => {
@@ -96,7 +100,7 @@ export const IdentifyPanel: React.FC = () => {
         {selectedFeature.metadata && (
           <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 space-y-1.5 bg-blue-50/50 dark:bg-slate-800/80 border border-blue-100 dark:border-slate-700 p-3 rounded-2xl">
             <span className="text-[10px] font-black text-slate-400 dark:text-slate-300 uppercase tracking-wider block mb-1">
-              Authoritative GIS Attributes:
+              {language === 'ar' ? 'الخصائص المكانية الموثوقة:' : 'Authoritative GIS Attributes:'}
             </span>
             {Object.entries(selectedFeature.metadata).map(([key, val]) => (
               <div key={key} className="flex items-center justify-between text-[11px]">

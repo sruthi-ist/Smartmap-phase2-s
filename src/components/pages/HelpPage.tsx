@@ -52,14 +52,14 @@ export const HelpPage: React.FC = () => {
   );
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-16 space-y-8 bg-spatial-canvas min-h-screen">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 sm:pt-32 lg:pt-36 pb-16 space-y-8 bg-spatial-canvas min-h-screen">
       
       {/* WOW Full-Width Hero Search Banner */}
-      <div className="relative overflow-hidden p-6 sm:p-12 rounded-3xl bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white text-center space-y-6 shadow-2xl border border-blue-900/60 glow-blue">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-geovision-blue/20 rounded-full blur-3xl -z-0 pointer-events-none" />
+      <div className="relative overflow-hidden p-6 sm:p-12 rounded-3xl bg-gradient-to-r from-[#063360] via-[#215A9E] to-[#041F3B] text-white text-center space-y-6 shadow-2xl border border-[#7DA1C4]/30 glow-blue">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-[#215A9E]/20 rounded-full blur-3xl -z-0 pointer-events-none" />
 
         <div className="relative z-10 space-y-4">
-          <div className="w-16 h-16 rounded-3xl bg-gradient-to-tr from-geovision-blue to-cyan-400 text-white mx-auto flex items-center justify-center font-black shadow-xl shadow-blue-500/40">
+          <div className="w-16 h-16 rounded-3xl bg-gradient-to-tr from-[#215A9E] to-[#7DA1C4] text-white mx-auto flex items-center justify-center font-black shadow-xl shadow-[#215A9E]/40">
             <HelpCircle className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight">{t('help.title')}</h1>

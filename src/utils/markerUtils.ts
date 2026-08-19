@@ -2,14 +2,14 @@ import L from 'leaflet';
 
 export const getCategoryColor = (category: string): string => {
   const catColors: Record<string, string> = {
-    healthcare: '#176BFF',
-    education: '#4F46E5',
-    transport: '#D97706',
-    parks: '#059669',
-    government: '#7C3AED',
-    utilities: '#2563EB',
+    healthcare: '#215A9E', // DGE Tech Blue
+    education: '#063360',  // DGE Reliable Blue
+    transport: '#7DA1C4',  // DGE Light Blue
+    parks: '#215A9E',      // DGE Tech Blue
+    government: '#063360', // DGE Reliable Blue
+    utilities: '#7DA1C4',  // DGE Light Blue
   };
-  return catColors[category] || '#176BFF';
+  return catColors[category] || '#215A9E';
 };
 
 export const getCategorySvgIcon = (category: string, subcategory?: string): string => {

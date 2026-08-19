@@ -25,27 +25,27 @@ export const LandingPage: React.FC = () => {
         
         {/* BIG GeoVision Hero Brand Title */}
         <div className="flex items-center gap-3">
-          <h1 className="text-5xl sm:text-7xl md:text-8xl font-black text-geovision-blue tracking-tight flex items-center gap-2 drop-shadow-md">
+          <h1 className="text-5xl sm:text-7xl md:text-8xl font-black text-[#063360] dark:text-white tracking-tight flex items-center gap-2 drop-shadow-md">
             GeoVision
-            <MapPin className="w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16 text-geovision-blue fill-geovision-blue shrink-0" />
+            <MapPin className="w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16 text-[#215A9E] fill-[#215A9E] shrink-0" />
           </h1>
         </div>
 
         {/* Small Elegant Sub-Headline */}
-        <h2 className="text-lg sm:text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight drop-shadow-sm">
+        <h2 className="text-lg sm:text-2xl md:text-3xl font-extrabold text-[#063360] dark:text-white tracking-tight drop-shadow-sm">
           {language === 'ar' ? (
             <>
-              استكشف البيانات المكانية في <span className="text-geovision-blue font-black underline underline-offset-4 decoration-blue-400">أبوظبي</span>
+              استكشف البيانات المكانية في <span className="text-[#215A9E] font-black underline underline-offset-4 decoration-[#7DA1C4]">أبوظبي</span>
             </>
           ) : (
             <>
-              Explore Public Data Across <span className="text-geovision-blue font-black underline underline-offset-4 decoration-blue-400">Abu Dhabi</span>
+              Explore Public Data Across <span className="text-[#215A9E] font-black underline underline-offset-4 decoration-[#7DA1C4]">Abu Dhabi</span>
             </>
           )}
         </h2>
 
         {/* Description Subtitle */}
-        <p className="text-xs sm:text-sm sm:text-base text-slate-800 dark:text-slate-100 max-w-xl font-bold leading-relaxed drop-shadow-xs">
+        <p className="text-xs sm:text-sm sm:text-base text-[#545860] dark:text-slate-200 max-w-xl font-bold leading-relaxed drop-shadow-xs">
           {language === 'ar'
             ? 'ابحث عن أسئلة باللغة الطبيعية، واكتشف البيانات المكانية الموثوقة، واستكشف الخرائط التفاعلية في جميع أنحاء الإمارة.'
             : 'Search natural language questions, discover authoritative public datasets, and explore interactive maps across the emirate.'}

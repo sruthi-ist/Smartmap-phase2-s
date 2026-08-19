@@ -121,9 +121,9 @@ export const AIMessageSearchResults: React.FC<AIMessageSearchResultsProps> = ({
   };
 
   const getTypeButtonLabel = () => {
-    if (selectedType === 'all') return 'All Types';
-    if (selectedType === 'private') return 'Private';
-    return 'Public / Government';
+    if (selectedType === 'all') return language === 'ar' ? 'جميع الأنواع' : 'All Types';
+    if (selectedType === 'private') return language === 'ar' ? 'خاص' : 'Private';
+    return language === 'ar' ? 'حكومي / عام' : 'Public / Government';
   };
 
   const isLayerActive = selectedCategories.length < LAYER_OPTIONS.length;
@@ -254,9 +254,9 @@ export const AIMessageSearchResults: React.FC<AIMessageSearchResultsProps> = ({
               </div>
 
               {[
-                { id: 'all', label: 'All Types' },
-                { id: 'private', label: 'Private' },
-                { id: 'public', label: 'Public / Government' },
+                { id: 'all', label: language === 'ar' ? 'جميع الأنواع' : 'All Types' },
+                { id: 'private', label: language === 'ar' ? 'خاص' : 'Private' },
+                { id: 'public', label: language === 'ar' ? 'حكومي / عام' : 'Public / Government' },
               ].map((opt) => {
                 const isSel = selectedType === opt.id;
                 return (

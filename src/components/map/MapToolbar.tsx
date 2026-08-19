@@ -21,6 +21,7 @@ export const MapToolbar: React.FC = () => {
     mapZoom,
     setMapCenterAndZoom,
     showToast,
+    language,
   } = useAppState();
 
   const handleDrawToggle = () => {
@@ -41,30 +42,30 @@ export const MapToolbar: React.FC = () => {
   const handleZoomIn = () => {
     const newZoom = Math.min(mapZoom + 1, 19);
     setMapCenterAndZoom(mapCenter, newZoom);
-    showToast(`Zoom level: ${newZoom}`);
+    showToast(language === 'ar' ? `مستوى التكبير: ${newZoom}` : `Zoom level: ${newZoom}`);
   };
 
   const handleZoomOut = () => {
     const newZoom = Math.max(mapZoom - 1, 3);
     setMapCenterAndZoom(mapCenter, newZoom);
-    showToast(`Zoom level: ${newZoom}`);
+    showToast(language === 'ar' ? `مستوى التكبير: ${newZoom}` : `Zoom level: ${newZoom}`);
   };
 
   const handleHomeClick = () => {
     setMapCenterAndZoom([24.4539, 54.3773], 12);
-    showToast('Map reset to Abu Dhabi default extent');
+    showToast(language === 'ar' ? 'تمت إعادة ضبط الخريطة إلى النطاق الافتراضي لأبوظبي' : 'Map reset to Abu Dhabi default extent');
   };
 
   const handleLocateClick = () => {
-    showToast('Locating current device position...');
+    showToast(language === 'ar' ? 'جاري تحديد الموقع الحالي...' : 'Locating current device position...');
     setTimeout(() => {
       setMapCenterAndZoom([24.4539, 54.3773], 15);
-      showToast('Position acquired: Zoomed to current location');
+      showToast(language === 'ar' ? 'تم تحديد الموقع بنجاح' : 'Position acquired: Zoomed to current location');
     }, 800);
   };
 
   const handleCompassClick = () => {
-    showToast('Map orientation set to North (0°)');
+    showToast(language === 'ar' ? 'تم توجيه الخريطة إلى الشمال' : 'Map orientation set to North (0°)');
   };
 
   const handleSelectToggle = () => {
@@ -92,10 +93,10 @@ export const MapToolbar: React.FC = () => {
             className={`w-full py-1.5 px-0.5 rounded-xl flex flex-col items-center gap-0.5 transition-all cursor-pointer ${getToolBtnStyle(
               activeTool === 'sketch'
             )}`}
-            title="Draw AOI Polygon"
+            title={language === 'ar' ? 'رسم منطقة الاهتمام' : 'Draw AOI Polygon'}
           >
             <Pencil className="w-4 h-4 stroke-[2]" />
-            <span className="text-[8px] font-extrabold tracking-tight leading-none">Draw</span>
+            <span className="text-[8px] font-extrabold tracking-tight leading-none">{language === 'ar' ? 'رسم' : 'Draw'}</span>
           </button>
 
         {/* Basemap */}
@@ -104,10 +105,10 @@ export const MapToolbar: React.FC = () => {
           className={`w-full py-1.5 px-0.5 rounded-xl flex flex-col items-center gap-0.5 transition-all cursor-pointer ${getToolBtnStyle(
             activeTool === 'basemap'
           )}`}
-          title="Change Basemap Tiles"
+          title={language === 'ar' ? 'تغيير خريطة الأساس' : 'Change Basemap Tiles'}
         >
           <Layers className="w-4 h-4 stroke-[2]" />
-          <span className="text-[8px] font-extrabold tracking-tight leading-none">Basemap</span>
+          <span className="text-[8px] font-extrabold tracking-tight leading-none">{language === 'ar' ? 'الخريطة' : 'Basemap'}</span>
         </button>
 
         {/* Legend */}
@@ -116,10 +117,10 @@ export const MapToolbar: React.FC = () => {
           className={`w-full py-1.5 px-0.5 rounded-xl flex flex-col items-center gap-0.5 transition-all cursor-pointer ${getToolBtnStyle(
             activeTool === 'legend'
           )}`}
-          title="View Map Legend"
+          title={language === 'ar' ? 'عرض مفتاح الخريطة' : 'View Map Legend'}
         >
           <List className="w-4 h-4 stroke-[2]" />
-          <span className="text-[8px] font-extrabold tracking-tight leading-none">Legend</span>
+          <span className="text-[8px] font-extrabold tracking-tight leading-none">{language === 'ar' ? 'المفتاح' : 'Legend'}</span>
         </button>
 
       </div>
@@ -131,7 +132,7 @@ export const MapToolbar: React.FC = () => {
         <button
           onClick={handleZoomIn}
           className="w-full py-1 flex items-center justify-center rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-geovision-blue transition-all cursor-pointer"
-          title="Zoom In (+)"
+          title={language === 'ar' ? 'تكبير (+)' : 'Zoom In (+)'}
         >
           <Plus className="w-4 h-4 stroke-[2.5]" />
         </button>
@@ -140,7 +141,7 @@ export const MapToolbar: React.FC = () => {
         <button
           onClick={handleZoomOut}
           className="w-full py-1 flex items-center justify-center rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-geovision-blue transition-all cursor-pointer"
-          title="Zoom Out (-)"
+          title={language === 'ar' ? 'تصغير (-)' : 'Zoom Out (-)'}
         >
           <Minus className="w-4 h-4 stroke-[2.5]" />
         </button>
@@ -149,30 +150,30 @@ export const MapToolbar: React.FC = () => {
         <button
           onClick={handleHomeClick}
           className="w-full py-1 px-0.5 rounded-xl flex flex-col items-center gap-0.5 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-geovision-blue transition-all cursor-pointer"
-          title="Return to Home Extent"
+          title={language === 'ar' ? 'العودة إلى النطاق الرئيسي' : 'Return to Home Extent'}
         >
           <Home className="w-3.5 h-3.5 stroke-[2]" />
-          <span className="text-[8px] font-bold tracking-tight leading-none">Home</span>
+          <span className="text-[8px] font-bold tracking-tight leading-none">{language === 'ar' ? 'الرئيسية' : 'Home'}</span>
         </button>
 
         {/* Locate */}
         <button
           onClick={handleLocateClick}
           className="w-full py-1 px-0.5 rounded-xl flex flex-col items-center gap-0.5 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-geovision-blue transition-all cursor-pointer"
-          title="Locate Current Position"
+          title={language === 'ar' ? 'تحديد الموقع الحالي' : 'Locate Current Position'}
         >
           <Crosshair className="w-3.5 h-3.5 stroke-[2]" />
-          <span className="text-[8px] font-bold tracking-tight leading-none">Locate</span>
+          <span className="text-[8px] font-bold tracking-tight leading-none">{language === 'ar' ? 'تحديد' : 'Locate'}</span>
         </button>
 
         {/* Compass */}
         <button
           onClick={handleCompassClick}
           className="w-full py-1 px-0.5 rounded-xl flex flex-col items-center gap-0.5 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-geovision-blue transition-all cursor-pointer"
-          title="Map Orientation (North)"
+          title={language === 'ar' ? 'توجيه الخريطة إلى الشمال' : 'Map Orientation (North)'}
         >
           <Navigation className="w-3.5 h-3.5 stroke-[2]" />
-          <span className="text-[8px] font-bold tracking-tight leading-none">Compass</span>
+          <span className="text-[8px] font-bold tracking-tight leading-none">{language === 'ar' ? 'البوصلة' : 'Compass'}</span>
         </button>
 
         {/* Divider */}
@@ -184,10 +185,10 @@ export const MapToolbar: React.FC = () => {
           className={`w-full py-1 px-0.5 rounded-xl flex flex-col items-center gap-0.5 transition-all cursor-pointer ${getToolBtnStyle(
             activeTool === 'identify'
           )}`}
-          title="Select / Inspect Feature"
+          title={language === 'ar' ? 'تحديد ومعاينة المعالم' : 'Select / Inspect Feature'}
         >
           <MousePointer2 className="w-3.5 h-3.5 stroke-[2]" />
-          <span className="text-[8px] font-bold tracking-tight leading-none">Select</span>
+          <span className="text-[8px] font-bold tracking-tight leading-none">{language === 'ar' ? 'تحديد' : 'Select'}</span>
         </button>
 
       </div>

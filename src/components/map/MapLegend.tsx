@@ -45,7 +45,7 @@ export const MapLegend: React.FC = () => {
       <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5 mb-3">
         <h3 className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-widest flex items-center gap-2">
           <Layers className="w-4 h-4 text-geovision-blue" />
-          <span>LEGEND</span>
+          <span>{language === 'ar' ? 'مفتاح الخريطة' : 'MAP LEGEND'}</span>
         </h3>
         <button
           onClick={() => setActiveTool('none')}

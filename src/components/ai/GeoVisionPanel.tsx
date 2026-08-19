@@ -167,14 +167,14 @@ export const GeoVisionPanel: React.FC<GeoVisionPanelProps> = ({ onClose }) => {
       {/* Panel Header */}
       <div className="p-3.5 sm:p-4 border-b border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between bg-slate-50/70 dark:bg-slate-900/70 shrink-0">
         <div className="flex items-center gap-2.5 sm:gap-3">
-          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-2xl bg-geovision-blue text-white flex items-center justify-center font-bold shadow-md shadow-blue-500/30 shrink-0">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-2xl bg-[#215A9E] text-white flex items-center justify-center font-bold shadow-md shadow-[#215A9E]/30 shrink-0">
             <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
           <div>
-            <h2 className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+            <h2 className="text-xs sm:text-sm font-black text-[#063360] dark:text-white flex items-center gap-2">
               {t('ai.panelTitle')}
             </h2>
-            <span className="text-[9px] sm:text-[10px] font-bold text-geovision-blue uppercase tracking-wider block">
+            <span className="text-[9px] sm:text-[10px] font-bold text-[#215A9E] dark:text-[#7DA1C4] uppercase tracking-wider block">
               Spatial Intelligence Copilot
             </span>
           </div>
@@ -183,7 +183,7 @@ export const GeoVisionPanel: React.FC<GeoVisionPanelProps> = ({ onClose }) => {
         <div className="flex items-center gap-1.5">
           <button
             onClick={startNewConversation}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-geovision-blue text-white hover:bg-blue-600 font-extrabold text-xs shadow-md shadow-blue-500/25 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#215A9E] text-white hover:bg-[#063360] font-extrabold text-xs shadow-md shadow-[#215A9E]/25 transition-all cursor-pointer"
             title={language === 'ar' ? 'محادثة جديدة' : 'New Chat'}
           >
             <Plus className="w-3.5 h-3.5 shrink-0" />
@@ -192,10 +192,10 @@ export const GeoVisionPanel: React.FC<GeoVisionPanelProps> = ({ onClose }) => {
 
           <button
             onClick={handleHistoryClick}
-            className="p-1.5 sm:p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-xl hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors cursor-pointer ml-1"
+            className="p-1.5 sm:p-2 text-[#545860] hover:text-[#063360] dark:text-slate-400 dark:hover:text-white rounded-xl hover:bg-[#7DA1C4]/15 dark:hover:bg-slate-800 transition-colors cursor-pointer ml-1"
             title={t('nav.history')}
           >
-            <History className="w-4 h-4 text-geovision-blue" />
+            <History className="w-4 h-4 text-[#215A9E]" />
           </button>
 
           {/* Close Panel Button */}
@@ -213,18 +213,18 @@ export const GeoVisionPanel: React.FC<GeoVisionPanelProps> = ({ onClose }) => {
 
       {/* Top Exploration Context Bar */}
       {(selectedCategoryIds.length > 0 || selectedSubcategoryIds.length > 0 || smartFilters.categories.length > 0) && (
-        <div className="px-3.5 py-1.5 border-b border-slate-200/60 dark:border-slate-800 bg-blue-50/60 dark:bg-slate-900/60 flex items-center justify-between gap-2 shrink-0">
+        <div className="px-3.5 py-1.5 border-b border-slate-200/60 dark:border-slate-800 bg-[#7DA1C4]/10 dark:bg-slate-900/60 flex items-center justify-between gap-2 shrink-0">
           <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none text-[10px] font-bold text-slate-600 dark:text-slate-300">
-            <span className="text-slate-400 font-extrabold uppercase shrink-0">
+            <span className="text-[#545860] font-extrabold uppercase shrink-0">
               {language === 'ar' ? 'الاستكشاف الحالي:' : 'Current exploration:'}
             </span>
             {selectedCategoryIds.map(cat => (
-              <span key={cat} className="px-2 py-0.5 rounded-md bg-geovision-blue/10 text-geovision-blue dark:text-blue-300 border border-blue-200/50 capitalize font-black shrink-0">
+              <span key={cat} className="px-2 py-0.5 rounded-md bg-[#215A9E]/10 text-[#215A9E] dark:text-[#7DA1C4] border border-[#215A9E]/20 capitalize font-black shrink-0">
                 {cat}
               </span>
             ))}
             {selectedSubcategoryIds.map(sub => (
-              <span key={sub} className="px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/50 capitalize font-black shrink-0">
+              <span key={sub} className="px-2 py-0.5 rounded-md bg-[#7DA1C4]/20 text-[#063360] dark:text-[#7DA1C4] border border-[#7DA1C4]/30 capitalize font-black shrink-0">
                 {sub.replace('_', ' ')}
               </span>
             ))}

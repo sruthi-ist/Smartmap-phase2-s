@@ -28,19 +28,19 @@ export const FavoritesPage: React.FC = () => {
   if (user.isGuest) {
     return (
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center space-y-6 bg-spatial-canvas min-h-screen flex flex-col justify-center">
-        <div className="w-22 h-22 rounded-3xl bg-blue-100 dark:bg-blue-950/60 text-geovision-blue mx-auto flex items-center justify-center font-bold shadow-2xl shadow-blue-500/20 border border-blue-200 dark:border-blue-900/50">
+        <div className="w-22 h-22 rounded-3xl bg-[#7DA1C4]/15 text-[#215A9E] mx-auto flex items-center justify-center font-bold shadow-2xl shadow-[#215A9E]/20 border border-[#7DA1C4]/30">
           <ShieldAlert className="w-10 h-10" />
         </div>
-        <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+        <h2 className="text-2xl sm:text-3xl font-black text-[#063360] dark:text-white">
           Sign In to View My Favorites
         </h2>
-        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto font-semibold leading-relaxed">
+        <p className="text-xs sm:text-sm text-[#545860] dark:text-slate-400 max-w-md mx-auto font-semibold leading-relaxed">
           Guest users can explore maps and datasets. Sign in or create an account to save your favorite locations, datasets, and AI queries across sessions.
         </p>
         <div>
           <button
             onClick={() => setGuestPromptOpen(true)}
-            className="px-8 py-3.5 rounded-2xl bg-geovision-blue text-white text-xs font-black hover:bg-blue-600 shadow-xl shadow-blue-500/30 transition-all cursor-pointer"
+            className="px-8 py-3.5 rounded-2xl bg-[#215A9E] text-white text-xs font-black hover:bg-[#063360] shadow-xl shadow-[#215A9E]/30 transition-all cursor-pointer"
           >
             Sign In / Create Account
           </button>
@@ -59,10 +59,10 @@ export const FavoritesPage: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-16 space-y-8 bg-spatial-canvas min-h-screen">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 sm:pt-32 lg:pt-36 pb-16 space-y-8 bg-spatial-canvas min-h-screen">
       
       {/* Full-Width WOW Hero Banner */}
-      <div className="relative overflow-hidden p-6 sm:p-10 rounded-3xl bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 text-white shadow-2xl shadow-amber-500/20 border border-amber-400/30">
+      <div className="relative overflow-hidden p-6 sm:p-10 rounded-3xl bg-gradient-to-r from-[#063360] via-[#215A9E] to-[#041F3B] text-white shadow-2xl border border-[#7DA1C4]/30 glow-blue">
         <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -z-0 pointer-events-none" />
 
         <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">

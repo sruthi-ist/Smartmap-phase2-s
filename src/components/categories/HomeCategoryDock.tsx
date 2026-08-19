@@ -33,7 +33,7 @@ export const HomeCategoryDock: React.FC = () => {
           <div className="flex items-center gap-1.5 shrink-0">
             <button
               onClick={() => setCurrentView('categories')}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-geovision-blue text-white shadow-md shadow-blue-500/25 hover:bg-blue-600 active:scale-95 transition-all shrink-0 cursor-pointer"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#215A9E] text-white shadow-md shadow-[#215A9E]/25 hover:bg-[#063360] active:scale-95 transition-all shrink-0 cursor-pointer"
             >
               <Compass className="w-3.5 h-3.5" />
               <span>
@@ -45,7 +45,7 @@ export const HomeCategoryDock: React.FC = () => {
 
             <button
               onClick={() => setCurrentView('categories')}
-              className="p-1 rounded-full text-slate-600 dark:text-slate-200 hover:text-geovision-blue hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0 cursor-pointer"
+              className="p-1 rounded-full text-[#545860] dark:text-slate-200 hover:text-[#063360] hover:bg-[#7DA1C4]/20 transition-colors shrink-0 cursor-pointer"
               title="Explore All Categories"
             >
               <Plus className="w-4 h-4" />
@@ -66,8 +66,8 @@ export const HomeCategoryDock: React.FC = () => {
                   onClick={() => handleCategoryClick(cat.id)}
                   className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer ${
                     isSelected
-                      ? 'bg-geovision-blue text-white shadow-md shadow-blue-500/25 scale-105'
-                      : 'glass-level-1 text-slate-700 dark:text-slate-200 hover:border-geovision-blue hover:text-geovision-blue'
+                      ? 'bg-[#215A9E] text-white shadow-md shadow-[#215A9E]/25 scale-105'
+                      : 'bg-white/70 dark:bg-slate-900/70 text-[#545860] dark:text-slate-200 hover:bg-[#7DA1C4]/20 hover:text-[#063360]'
                   }`}
                 >
                   <IconComp className="w-3.5 h-3.5" />

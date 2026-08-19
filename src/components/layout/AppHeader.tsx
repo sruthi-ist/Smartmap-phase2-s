@@ -81,12 +81,12 @@ export const AppHeader: React.FC = () => {
     <div className="fixed top-2 sm:top-3 left-1/2 -translate-x-1/2 z-[500] w-[calc(100%-1rem)] sm:w-[calc(100%-2rem)] max-w-7xl">
       <header className="relative w-full h-[56px] sm:h-[62px] glass-level-2 rounded-2xl px-2.5 sm:px-5 flex items-center justify-between shadow-xl border border-white/80 dark:border-white/10">
         
-        {/* Left: First Logo — Department of Government Enablement */}
+        {/* Left: First Logo — Department of Government Enablement Brandmark */}
         <div className="flex items-center cursor-pointer shrink-0" onClick={() => handleNavClick('home')}>
           <img
             src="/assets/logos/dge-logo.png"
             alt="Department of Government Enablement"
-            className="h-6 sm:h-8 md:h-9 max-w-[110px] sm:max-w-none object-contain dark:bg-white/90 dark:px-2 dark:py-0.5 dark:rounded-lg shrink-0 transition-transform hover:scale-105"
+            className="h-7 sm:h-9 md:h-10 max-w-[130px] sm:max-w-none object-contain dark:bg-white/90 dark:px-2 dark:py-1 dark:rounded-lg shrink-0 transition-transform hover:scale-105"
           />
         </div>
 
@@ -96,8 +96,8 @@ export const AppHeader: React.FC = () => {
             onClick={() => handleNavClick('home')}
             className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
               currentView === 'home'
-                ? 'bg-geovision-blue/10 text-geovision-blue font-extrabold shadow-2xs'
-                : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800'
+                ? 'bg-[#215A9E]/10 text-[#215A9E] dark:text-[#7DA1C4] font-extrabold shadow-2xs'
+                : 'text-slate-600 hover:text-[#063360] dark:text-slate-300 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800'
             }`}
           >
             <Home className="w-3.5 h-3.5" />
@@ -108,8 +108,8 @@ export const AppHeader: React.FC = () => {
             onClick={() => handleNavClick('map')}
             className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
               currentView === 'map'
-                ? 'bg-geovision-blue/10 text-geovision-blue font-extrabold shadow-2xs'
-                : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800'
+                ? 'bg-[#215A9E]/10 text-[#215A9E] dark:text-[#7DA1C4] font-extrabold shadow-2xs'
+                : 'text-slate-600 hover:text-[#063360] dark:text-slate-300 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800'
             }`}
           >
             <Map className="w-3.5 h-3.5" />
@@ -120,8 +120,8 @@ export const AppHeader: React.FC = () => {
             onClick={() => handleNavClick('about')}
             className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
               currentView === 'about'
-                ? 'bg-geovision-blue/10 text-geovision-blue font-extrabold shadow-2xs'
-                : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800'
+                ? 'bg-[#215A9E]/10 text-[#215A9E] dark:text-[#7DA1C4] font-extrabold shadow-2xs'
+                : 'text-slate-600 hover:text-[#063360] dark:text-slate-300 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800'
             }`}
           >
             <Info className="w-3.5 h-3.5" />
@@ -132,8 +132,8 @@ export const AppHeader: React.FC = () => {
             onClick={() => handleNavClick('help')}
             className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
               currentView === 'help'
-                ? 'bg-geovision-blue/10 text-geovision-blue font-extrabold shadow-2xs'
-                : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800'
+                ? 'bg-[#215A9E]/10 text-[#215A9E] dark:text-[#7DA1C4] font-extrabold shadow-2xs'
+                : 'text-slate-600 hover:text-[#063360] dark:text-slate-300 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800'
             }`}
           >
             <HelpCircle className="w-3.5 h-3.5" />
@@ -285,14 +285,14 @@ export const AppHeader: React.FC = () => {
             </div>
           )}
 
-          <div className="w-px h-5 sm:h-6 bg-slate-300/80 dark:bg-slate-700/80 shrink-0 hidden xs:block" />
+          <div className="w-px h-5 sm:h-6 bg-slate-300/80 dark:bg-slate-700/80 shrink-0 hidden md:block" />
 
-          {/* Rightmost: Last Logo — Abu Dhabi Spatial Data */}
-          <div className="flex items-center cursor-pointer shrink-0" onClick={() => setCurrentView('home')}>
+          {/* Rightmost: Second Logo — Abu Dhabi Spatial Data */}
+          <div className="hidden md:flex items-center cursor-pointer shrink-0" onClick={() => handleNavClick('home')}>
             <img
               src="/assets/logos/spatial-data-logo.png"
               alt="Abu Dhabi Spatial Data"
-              className="h-5 sm:h-7 md:h-8 max-w-[90px] sm:max-w-none object-contain dark:bg-white/90 dark:px-2 dark:py-0.5 dark:rounded-lg shrink-0 transition-transform hover:scale-105"
+              className="h-6 sm:h-7 md:h-8 max-w-[85px] sm:max-w-[110px] object-contain dark:bg-white/90 dark:px-2 dark:py-0.5 dark:rounded-lg shrink-0 transition-transform hover:scale-105"
             />
           </div>
         </div>

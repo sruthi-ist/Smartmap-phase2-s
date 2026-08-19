@@ -74,22 +74,22 @@ export const HistoryPage: React.FC = () => {
   const groupedTimeline = groupSessionsByTime(conversationSessions);
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-16 space-y-8 bg-spatial-canvas min-h-screen">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 sm:pt-32 lg:pt-36 pb-16 space-y-8 bg-spatial-canvas min-h-screen">
       
       {/* WOW Full-Width Hero Header */}
-      <div className="relative overflow-hidden p-6 sm:p-10 rounded-3xl bg-gradient-to-r from-slate-900 via-blue-950 to-indigo-950 text-white shadow-2xl border border-blue-900/60 glow-blue">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-geovision-blue/20 rounded-full blur-3xl -z-0 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-purple-600/10 rounded-full blur-3xl -z-0 pointer-events-none" />
+      <div className="relative overflow-hidden p-6 sm:p-10 rounded-3xl bg-gradient-to-r from-[#063360] via-[#215A9E] to-[#041F3B] text-white shadow-2xl border border-[#7DA1C4]/30 glow-blue">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-[#215A9E]/20 rounded-full blur-3xl -z-0 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-[#7DA1C4]/15 rounded-full blur-3xl -z-0 pointer-events-none" />
 
         <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-5 text-center md:text-left rtl:md:text-right">
-            <div className="w-16 h-16 rounded-3xl bg-gradient-to-tr from-geovision-blue to-cyan-400 text-white flex items-center justify-center font-black shadow-xl shadow-blue-500/30 shrink-0">
+            <div className="w-16 h-16 rounded-3xl bg-gradient-to-tr from-[#215A9E] to-[#7DA1C4] text-white flex items-center justify-center font-black shadow-xl shadow-[#215A9E]/30 shrink-0">
               <History className="w-8 h-8" />
             </div>
             <div>
               <div className="flex items-center gap-3 justify-center md:justify-start rtl:md:justify-end flex-wrap">
                 <h1 className="text-2xl sm:text-4xl font-black tracking-tight">{t('history.title')}</h1>
-                <span className="px-3 py-1 rounded-full text-xs font-black bg-geovision-blue text-white shadow-sm">
+                <span className="px-3 py-1 rounded-full text-xs font-black bg-[#215A9E] text-white shadow-sm">
                   {conversationSessions.length} {language === 'ar' ? 'جلسات' : 'Sessions'}
                 </span>
               </div>
@@ -117,7 +117,7 @@ export const HistoryPage: React.FC = () => {
                 startNewConversation();
                 setCurrentView('map');
               }}
-              className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-geovision-blue text-white hover:bg-blue-600 text-xs font-black shadow-xl shadow-blue-500/30 transition-all cursor-pointer"
+              className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-[#215A9E] text-white hover:bg-[#063360] text-xs font-black shadow-xl shadow-[#215A9E]/30 transition-all cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>{language === 'ar' ? 'بدء محادثة جديدة' : 'Start New Chat'}</span>

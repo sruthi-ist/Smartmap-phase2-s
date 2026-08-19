@@ -1,30 +1,51 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Tajawal:wght@300;400;500;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@100..900&display=swap');
 @import "tailwindcss";
 @import "leaflet/dist/leaflet.css";
 
 @variant dark (&:where(.dark, .dark *));
 
 :root {
-  /* 2026 GeoVision Blue Glassmorphism Palette */
-  --deep-space-blue: #071B33;
-  --geovision-blue: #176BFF;
-  --geovision-blue-hover: #0f56d9;
-  --azure-blue: #3B8EFF;
-  --electric-blue: #4CA7FF;
-  --cyan-accent: #70D7FF;
-  --pale-blue: #EAF5FF;
-  --frost-surface: rgba(255, 255, 255, 0.68);
-  --bg-page: #F3F8FD;
-  --text-main: #10223A;
-  --text-secondary: #66788E;
-  --border-glass: rgba(255, 255, 255, 0.65);
+  /* Official Department of Government Enablement (DGE) Color Palette */
+  --dge-tech-blue: #215A9E;
+  --dge-light-blue: #7DA1C4;
+  --dge-reliable-blue: #063360;
+  --dge-white: #FFFFFF;
+  --dge-grey: #545860;
+  --dge-black: #000000;
 
-  --font-en: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-ar: 'Tajawal', 'Inter', system-ui, sans-serif;
+  --dge-bg-primary: #FFFFFF;
+  --dge-bg-soft: #F5F8FB;
+
+  --dge-text-primary: #063360;
+  --dge-text-secondary: #545860;
+
+  --dge-border-soft: rgba(125, 161, 196, 0.25);
+  --dge-glass-surface: rgba(255, 255, 255, 0.72);
+  --dge-glass-border: rgba(125, 161, 196, 0.22);
+  --dge-shadow: 0 18px 46px rgba(6, 51, 96, 0.10);
+
+  /* Legacy Brand Aliases mapped strictly to DGE Tokens */
+  --geovision-blue: #215A9E; /* DGE Tech Blue */
+  --geovision-blue-hover: #063360; /* DGE Reliable Blue */
+  --azure-blue: #7DA1C4; /* DGE Light Blue */
+  --electric-blue: #215A9E; /* DGE Tech Blue */
+  --cyan-accent: #7DA1C4; /* DGE Light Blue */
+  --deep-space-blue: #063360; /* DGE Reliable Blue */
+  --pale-blue: rgba(125, 161, 196, 0.12);
+  --frost-surface: rgba(255, 255, 255, 0.72);
+  --bg-page: #F5F8FB;
+  --text-main: #063360;
+  --text-secondary: #545860;
+  --border-glass: rgba(125, 161, 196, 0.25);
+
+  /* Official DGE Font Family — Noto Kufi Arabic for BOTH English and Arabic */
+  --font-dge: 'Noto Kufi Arabic', Arial, sans-serif;
+  --font-en: 'Noto Kufi Arabic', Arial, sans-serif;
+  --font-ar: 'Noto Kufi Arabic', Arial, sans-serif;
 }
 
 body {
-  font-family: var(--font-en);
+  font-family: var(--font-dge);
   background-color: var(--bg-page);
   color: var(--text-main);
   margin: 0;
@@ -34,96 +55,97 @@ body {
 }
 
 [dir="rtl"] body,
-[dir="rtl"] {
-  font-family: var(--font-ar);
+[dir="rtl"],
+html {
+  font-family: var(--font-dge);
 }
 
-/* 3-Level Glassmorphism Hierarchy */
+/* Official DGE Glassmorphism Hierarchy */
 
-/* Level 1 — Light Glass (Pills, badges, small controls) */
+/* Level 1 — DGE Light Glass (Pills, badges, small controls) */
 .glass-level-1 {
-  background: rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(14px) saturate(160%);
-  -webkit-backdrop-filter: blur(14px) saturate(160%);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 0 4px 15px rgba(23, 107, 255, 0.06);
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border: 1px solid rgba(125, 161, 196, 0.25);
+  box-shadow: 0 4px 18px rgba(6, 51, 96, 0.05);
 }
 
-/* Level 2 — Standard Glass (Capsule navigation, 74px AI search, tool dock, feature cards) */
+/* Level 2 — Standard DGE Glass (Navigation capsules, AI search, tool dock, feature cards) */
 .glass-level-2,
 .glass-panel {
-  background: rgba(255, 255, 255, 0.68);
-  backdrop-filter: blur(22px) saturate(160%);
-  -webkit-backdrop-filter: blur(22px) saturate(160%);
-  border: 1px solid rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  border: 1px solid rgba(125, 161, 196, 0.22);
   box-shadow:
-    0 16px 40px rgba(26, 79, 145, 0.10),
-    inset 0 1px 0 rgba(255, 255, 255, 0.70);
+    0 18px 45px rgba(6, 51, 96, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 0.80);
 }
 
-/* Level 3 — Strong Frosted Glass (GeoVision AI panel, drawers, authentication, modals) */
+/* Level 3 — DGE Strong Frosted Glass (GeoVision AI panel, drawers, authentication, modals) */
 .glass-level-3 {
-  background: rgba(248, 252, 255, 0.78);
-  backdrop-filter: blur(28px) saturate(170%);
-  -webkit-backdrop-filter: blur(28px) saturate(170%);
-  border: 1px solid rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(30px) saturate(155%);
+  -webkit-backdrop-filter: blur(30px) saturate(155%);
+  border: 1px solid rgba(125, 161, 196, 0.28);
   box-shadow:
-    0 20px 50px rgba(7, 27, 51, 0.14),
-    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+    0 22px 56px rgba(6, 51, 96, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.90);
 }
 
-/* Blue Soft Ambient Glow */
+/* DGE Blue Soft Ambient Glow */
 .glow-blue-lg {
   box-shadow:
-    0 0 45px -5px rgba(23, 107, 255, 0.22),
-    0 16px 40px rgba(26, 79, 145, 0.10);
+    0 0 45px -5px rgba(33, 90, 158, 0.22),
+    0 18px 45px rgba(6, 51, 96, 0.10);
 }
 
-/* Atmospheric Background with Spatial Contours */
+/* Official DGE Home Spatial Background with Light Subtle Contours */
 .bg-spatial-canvas {
   background:
-    radial-gradient(circle at 20% 20%, rgba(61, 142, 255, 0.16), transparent 28%),
-    radial-gradient(circle at 85% 35%, rgba(112, 215, 255, 0.12), transparent 26%),
-    linear-gradient(135deg, #F8FBFF 0%, #EEF6FF 55%, #F7FBFF 100%);
+    radial-gradient(circle at 20% 10%, rgba(125, 161, 196, 0.24), transparent 32%),
+    radial-gradient(circle at 85% 35%, rgba(33, 90, 158, 0.15), transparent 30%),
+    linear-gradient(135deg, #FFFFFF 0%, #F5F8FB 55%, rgba(125, 161, 196, 0.10) 100%);
 }
 
-/* Dark Mode Glassmorphism Overrides */
+/* DGE Dark Mode (Reliable Blue Foundation) */
 .dark body,
 .dark {
-  background-color: #070F1E;
-  color: #F8FAFC;
+  background-color: #041F3B;
+  color: #FFFFFF;
 }
 
 .dark .bg-spatial-canvas {
   background:
-    radial-gradient(circle at 15% 15%, rgba(23, 107, 255, 0.22), transparent 35%),
-    radial-gradient(circle at 85% 40%, rgba(56, 189, 248, 0.16), transparent 32%),
-    linear-gradient(135deg, #070F1E 0%, #0B172E 50%, #060D1A 100%);
+    radial-gradient(circle at 20% 15%, rgba(33, 90, 158, 0.35), transparent 35%),
+    radial-gradient(circle at 85% 40%, rgba(125, 161, 196, 0.20), transparent 32%),
+    linear-gradient(135deg, #041F3B 0%, #063360 50%, #03162B 100%);
 }
 
 .dark .glass-level-1 {
-  background: rgba(15, 25, 42, 0.88);
-  backdrop-filter: blur(18px) saturate(170%);
-  -webkit-backdrop-filter: blur(18px) saturate(170%);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+  background: rgba(6, 51, 96, 0.65);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid rgba(125, 161, 196, 0.18);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
 }
 
 .dark .glass-level-2,
 .dark .glass-panel {
-  background: rgba(13, 22, 38, 0.92);
-  backdrop-filter: blur(26px) saturate(170%);
-  -webkit-backdrop-filter: blur(26px) saturate(170%);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  background: rgba(6, 51, 96, 0.76);
+  backdrop-filter: blur(26px) saturate(150%);
+  -webkit-backdrop-filter: blur(26px) saturate(150%);
+  border: 1px solid rgba(125, 161, 196, 0.20);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.50), inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .dark .glass-level-3 {
-  background: rgba(10, 18, 32, 0.96);
-  backdrop-filter: blur(32px) saturate(180%);
-  -webkit-backdrop-filter: blur(32px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.20);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  background: rgba(6, 51, 96, 0.85);
+  backdrop-filter: blur(32px) saturate(160%);
+  -webkit-backdrop-filter: blur(32px) saturate(160%);
+  border: 1px solid rgba(125, 161, 196, 0.24);
+  box-shadow: 0 22px 56px rgba(0, 0, 0, 0.60), inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 
