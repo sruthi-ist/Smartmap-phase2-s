@@ -79,6 +79,7 @@ export interface AIMessage {
   textEn: string;
   textAr: string;
   timestamp: string;
+  isArabicPrompt?: boolean;
   recommendationsEn?: string[];
   recommendationsAr?: string[];
   datasetChips?: string[];

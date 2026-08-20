@@ -457,12 +457,15 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
     if (!query.trim()) return;
 
     // Add user message immediately
+    const isArabicQuery = /[\u0600-\u06FF]/.test(query);
+
     const userMsg: AIMessage = {
       id: `usr-${Date.now()}`,
       sender: 'user',
       textEn: query,
       textAr: query,
       timestamp: 'Just now',
+      isArabicPrompt: isArabicQuery,
     };
 
     setAiMessages(prev => [...prev, userMsg]);
@@ -514,10 +517,6 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
           setAiStepState('');
 
           const lower = query.toLowerCase();
-          const isArabicQuery = /[\u0600-\u06FF]/.test(query);
-          if (isArabicQuery && language !== 'ar') {
-            setLanguage('ar');
-          }
 
           // Intelligent NLU Matching Engine for 20 Conversational GIS Features
           let responseEn = '';
@@ -1162,6 +1161,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
             sender: 'ai',
             textEn: responseEn,
             textAr: responseAr,
+            isArabicPrompt: isArabicQuery,
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             recommendationsEn: recsEn,
             recommendationsAr: recsAr,

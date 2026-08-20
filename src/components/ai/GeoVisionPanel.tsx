@@ -246,76 +246,78 @@ export const GeoVisionPanel: React.FC<GeoVisionPanelProps> = ({ onClose }) => {
 
       {/* Messages Stream */}
       <div className="flex-1 p-3.5 sm:p-4 overflow-y-auto space-y-4">
-        {aiMessages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`flex flex-col ${
-              msg.sender === 'user' ? 'items-end' : 'items-start'
-            }`}
-          >
-            {/* Sender Badge */}
-            <div className="flex items-center gap-1.5 mb-1 text-[11px] font-bold text-slate-400">
-              {msg.sender === 'user' ? (
-                <>
-                  <span>You</span>
-                  <User className="w-3 h-3" />
-                </>
-              ) : (
-                <>
-                  <Bot className="w-3.5 h-3.5 text-geovision-blue" />
-                  <span className="text-geovision-blue font-extrabold">GeoVision AI</span>
-                </>
-              )}
-            </div>
-
-            {/* Bubble */}
+        {aiMessages.map((msg) => {
+          const isMsgAr = Boolean(msg.isArabicPrompt || language === 'ar');
+          return (
             <div
-              className={`max-w-[90%] sm:max-w-[85%] p-3.5 sm:p-4 rounded-2xl text-xs sm:text-sm font-semibold leading-relaxed shadow-sm ${
-                msg.sender === 'user'
-                  ? 'bg-geovision-blue text-white rounded-tr-none shadow-blue-500/20'
-                  : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-tl-none border border-slate-200/80 dark:border-slate-700/80'
+              key={msg.id}
+              className={`flex flex-col ${
+                msg.sender === 'user' ? 'items-end' : 'items-start'
               }`}
             >
-              {/* Query Interpretation Chips (GeoVision understood / GeoVision updated) */}
-              {msg.queryInterpretation && (
-                <div className="mb-2.5 p-2 rounded-xl bg-blue-50/80 dark:bg-slate-800/80 border border-blue-200/50 dark:border-slate-700 space-y-1">
-                  <span className="text-[10px] font-black text-geovision-blue dark:text-blue-300 uppercase tracking-wider block">
-                    {language === 'ar' ? msg.queryInterpretation.titleAr : msg.queryInterpretation.titleEn}
-                  </span>
-                  <div className="flex flex-wrap items-center gap-1">
-                    {msg.queryInterpretation.chips.map((chip, idx) => (
-                      <span
-                        key={idx}
-                        className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold border transition-all ${
-                          chip.isUpdated
-                            ? 'bg-geovision-blue text-white border-blue-400 animate-pulse'
-                            : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-600'
-                        }`}
-                      >
-                        {language === 'ar' ? chip.labelAr : chip.labelEn}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Count Metric Response Box (AICountCard) */}
-              {msg.countCardData && (
-                <div className="my-2.5 p-3.5 rounded-2xl bg-geovision-blue text-white shadow-lg shadow-blue-500/25 border border-white/20 text-center space-y-1">
-                  <p className="text-3xl font-black tracking-tight">{msg.countCardData.count}</p>
-                  <p className="text-xs font-black uppercase tracking-wider">
-                    {language === 'ar' ? msg.countCardData.titleAr : msg.countCardData.titleEn}
-                  </p>
-                  <p className="text-[10px] text-blue-100 font-semibold">
-                    {language === 'ar' ? msg.countCardData.scopeAr : msg.countCardData.scopeEn}
-                  </p>
-                </div>
-              )}
-
-              {/* Multiline text formatting */}
-              <div className="whitespace-pre-line">
-                {language === 'ar' ? msg.textAr : msg.textEn}
+              {/* Sender Badge */}
+              <div className="flex items-center gap-1.5 mb-1 text-[11px] font-bold text-slate-400">
+                {msg.sender === 'user' ? (
+                  <>
+                    <span>You</span>
+                    <User className="w-3 h-3" />
+                  </>
+                ) : (
+                  <>
+                    <Bot className="w-3.5 h-3.5 text-geovision-blue" />
+                    <span className="text-geovision-blue font-extrabold">GeoVision AI</span>
+                  </>
+                )}
               </div>
+
+              {/* Bubble */}
+              <div
+                className={`max-w-[90%] sm:max-w-[85%] p-3.5 sm:p-4 rounded-2xl text-xs sm:text-sm font-semibold leading-relaxed shadow-sm ${
+                  msg.sender === 'user'
+                    ? 'bg-geovision-blue text-white rounded-tr-none shadow-blue-500/20'
+                    : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-tl-none border border-slate-200/80 dark:border-slate-700/80'
+                }`}
+              >
+                {/* Query Interpretation Chips (GeoVision understood / GeoVision updated) */}
+                {msg.queryInterpretation && (
+                  <div className="mb-2.5 p-2 rounded-xl bg-blue-50/80 dark:bg-slate-800/80 border border-blue-200/50 dark:border-slate-700 space-y-1">
+                    <span className="text-[10px] font-black text-geovision-blue dark:text-blue-300 uppercase tracking-wider block">
+                      {isMsgAr ? msg.queryInterpretation.titleAr : msg.queryInterpretation.titleEn}
+                    </span>
+                    <div className="flex flex-wrap items-center gap-1">
+                      {msg.queryInterpretation.chips.map((chip, idx) => (
+                        <span
+                          key={idx}
+                          className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold border transition-all ${
+                            chip.isUpdated
+                              ? 'bg-geovision-blue text-white border-blue-400 animate-pulse'
+                              : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-600'
+                          }`}
+                        >
+                          {isMsgAr ? chip.labelAr : chip.labelEn}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Count Metric Response Box (AICountCard) */}
+                {msg.countCardData && (
+                  <div className="my-2.5 p-3.5 rounded-2xl bg-geovision-blue text-white shadow-lg shadow-blue-500/25 border border-white/20 text-center space-y-1">
+                    <p className="text-3xl font-black tracking-tight">{msg.countCardData.count}</p>
+                    <p className="text-xs font-black uppercase tracking-wider">
+                      {isMsgAr ? msg.countCardData.titleAr : msg.countCardData.titleEn}
+                    </p>
+                    <p className="text-[10px] text-blue-100 font-semibold">
+                      {isMsgAr ? msg.countCardData.scopeAr : msg.countCardData.scopeEn}
+                    </p>
+                  </div>
+                )}
+
+                {/* Multiline text formatting */}
+                <div className="whitespace-pre-line">
+                  {isMsgAr ? (msg.textAr || msg.textEn) : (msg.textEn || msg.textAr)}
+                </div>
 
               {/* Interactive Flow Components */}
               {msg.sender === 'ai' && (
@@ -509,14 +511,14 @@ export const GeoVisionPanel: React.FC<GeoVisionPanelProps> = ({ onClose }) => {
                     </div>
 
                     {/* Recommendations Section */}
-                    {!msg.noResultsSuggestions && !msg.disambiguationOptions && ((language === 'ar' ? msg.recommendationsAr : msg.recommendationsEn) || []).length > 0 && (
+                    {!msg.noResultsSuggestions && !msg.disambiguationOptions && ((isMsgAr ? msg.recommendationsAr : msg.recommendationsEn) || []).length > 0 && (
                       <div className="space-y-2 pt-1">
                         <p className="text-xs font-extrabold text-slate-700 dark:text-slate-300">
                           {t('ai.recommendationsTitle')}
                         </p>
 
                         <div className="space-y-2">
-                          {(language === 'ar' ? msg.recommendationsAr : msg.recommendationsEn)?.map((recText, idx) => (
+                          {(isMsgAr ? msg.recommendationsAr : msg.recommendationsEn)?.map((recText, idx) => (
                             <button
                               key={idx}
                               onClick={() => {
@@ -526,11 +528,11 @@ export const GeoVisionPanel: React.FC<GeoVisionPanelProps> = ({ onClose }) => {
                                 if (isExploreReq) {
                                   if (currentView !== 'map') setCurrentView('map');
                                   setFilterDrawerOpen(true);
-                                  showToast(language === 'ar' ? 'تم فتح مستكشف الفئات' : 'Category Explorer opened');
+                                  showToast(isMsgAr ? 'تم فتح مستكشف الفئات' : 'Category Explorer opened');
                                 } else if (isSketchReq) {
                                   if (currentView !== 'map') setCurrentView('map');
                                   setActiveTool('sketch');
-                                  showToast(language === 'ar' ? 'تم فتح أداة الرسم المكانية' : 'Sketch & AOI Tool opened');
+                                  showToast(isMsgAr ? 'تم فتح أداة الرسم المكانية' : 'Sketch & AOI Tool opened');
                                   sendAIMessage(recText);
                                 } else {
                                   sendAIMessage(recText);
@@ -561,7 +563,7 @@ export const GeoVisionPanel: React.FC<GeoVisionPanelProps> = ({ onClose }) => {
                   >
                     <List className="w-4 h-4 shrink-0 text-white" />
                     <span className="text-white font-black">
-                      {language === 'ar'
+                      {isMsgAr
                         ? `عرض قائمة النتائج (${msg.matchedFeatures.length})`
                         : `View Results List (${msg.matchedFeatures.length})`}
                     </span>
@@ -574,12 +576,13 @@ export const GeoVisionPanel: React.FC<GeoVisionPanelProps> = ({ onClose }) => {
                 <AIMessageSearchResults
                   features={msg.matchedFeatures}
                   setSelectedFeature={setSelectedFeature}
-                  language={language}
+                  language={isMsgAr ? 'ar' : 'en'}
                 />
               )}
             </div>
           </div>
-        ))}
+        );
+      })}
 
         {/* AI Thinking Step Indicator */}
         {aiProcessing && (
