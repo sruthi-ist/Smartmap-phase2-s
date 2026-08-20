@@ -543,7 +543,54 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
             responseEn = 'Opening Category Explorer to view all available SDI open datasets.';
             responseAr = 'جاري فتح مستكشف الفئات لمشاهدة جميع بيانات SDI المفتوحة المتاحة.';
             recsEn = ['Show hospitals in Khalifa City', 'Find schools near Yas Island', 'Show public parks in Abu Dhabi'];
-            recsAr = ['عرض المستشفيات في مدينة خليفة', 'البحث عن المدارس القريبة من جزيرة ياس', 'عرض الحدائق العامة في أبوظبي'];
+          }
+
+          // -------------------------------------------------------------------------
+          // Section 3.2: Ambiguous Request Resolution ("Show parks near Yas.")
+          // -------------------------------------------------------------------------
+          else if (
+            lower.replace(/[.,?!]/g, '').trim() === 'show parks near yas' ||
+            lower.replace(/[.,?!]/g, '').trim() === 'parks near yas' ||
+            lower.replace(/[.,?!]/g, '').trim() === 'park near yas' ||
+            lower.replace(/[.,?!]/g, '').trim() === 'parks in yas' ||
+            lower.replace(/[.,?!]/g, '').trim() === 'yas' ||
+            query.includes('حدائق بالقرب من ياس') ||
+            query.includes('حدائق في ياس') ||
+            (lower.includes('parks near yas') && !lower.includes('island') && !lower.includes('bani') && !lower.includes('west'))
+          ) {
+            responseEn = 'I found multiple locations matching "Yas". Which location do you mean?';
+            responseAr = 'عثرت على عدة مواقع تطابق "ياس". أي موقع تقصد؟';
+            disambigOpts = [
+              { labelEn: 'Yas Island, Abu Dhabi', labelAr: 'جزيرة ياس، أبوظبي', query: 'parks near Yas Island' },
+              { labelEn: 'Yasat West Island, Al Dhafra Region', labelAr: 'جزيرة الياسات الغربية، منطقة الظفرة', query: 'parks near Yasat West Island' },
+              { labelEn: 'Bani Yas, Abu Dhabi', labelAr: 'بني ياس، أبوظبي', query: 'parks near Bani Yas, Abu Dhabi' },
+              { labelEn: 'Al Yasat Island, Al Dhafra Region', labelAr: 'جزيرة الياسات، منطقة الظفرة', query: 'parks near Al Yasat Island' },
+            ];
+            recsEn = [];
+            recsAr = [];
+            matchedFeats = [];
+          }
+          else if (lower.includes('yasat west') || lower.includes('yasat west island')) {
+            matchedFeats = GEO_FEATURES.filter(f => f.category === 'parks');
+            responseEn = 'Context resolved (Yasat West Island): Displaying 2 coastal eco-parks near Yasat West Island in Al Dhafra Region.';
+            responseAr = 'تم تحديد الموقع (جزيرة الياسات الغربية): جاري عرض المنتزهات البيئية بالقرب من جزيرة الياسات الغربية في منطقة الظفرة.';
+            newCenter = [24.2341, 51.9854];
+            newZoom = 13;
+            setBufferRadiusKm(3);
+            setSelectedCategoryIds(['parks']);
+            recsEn = ['Show facilities in Yas Island', 'Show parks near Bani Yas'];
+            recsAr = ['عرض المرافق في جزيرة ياس', 'عرض الحدائق في بني ياس'];
+          }
+          else if (lower.includes('al yasat island') || lower.includes('al yasat')) {
+            matchedFeats = GEO_FEATURES.filter(f => f.category === 'parks');
+            responseEn = 'Context resolved (Al Yasat Island): Displaying 2 marine conservation parks in Al Yasat Protected Area, Al Dhafra Region.';
+            responseAr = 'تم تحديد الموقع (جزيرة الياسات): جاري عرض محميات الحدائق البحرية في منطقة الياسات المحمية في منطقة الظفرة.';
+            newCenter = [24.2120, 52.0120];
+            newZoom = 13;
+            setBufferRadiusKm(3);
+            setSelectedCategoryIds(['parks']);
+            recsEn = ['Show facilities in Yas Island', 'Show parks near Bani Yas'];
+            recsAr = ['عرض المرافق في جزيرة ياس', 'عرض الحدائق في بني ياس'];
           }
 
           // -------------------------------------------------------------------------

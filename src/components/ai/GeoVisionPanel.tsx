@@ -327,7 +327,7 @@ export const GeoVisionPanel: React.FC<GeoVisionPanelProps> = ({ onClose }) => {
                   {msg.disambiguationOptions && msg.disambiguationOptions.length > 0 && (
                     <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 space-y-2">
                       <p className="text-[11px] font-extrabold text-slate-500 dark:text-slate-400">
-                        {language === 'ar' ? 'المواقع المتاحة:' : 'Select a location option:'}
+                        {isMsgAr ? 'المواقع المتاحة:' : 'Select a location option:'}
                       </p>
                       <div className="space-y-1.5">
                         {msg.disambiguationOptions.map((opt, i) => (
@@ -339,7 +339,7 @@ export const GeoVisionPanel: React.FC<GeoVisionPanelProps> = ({ onClose }) => {
                           >
                             <div className="flex items-center gap-2 min-w-0">
                               <MapPin className="w-3.5 h-3.5 shrink-0 text-geovision-blue dark:text-blue-300" />
-                              <span className="truncate">{language === 'ar' ? opt.labelAr : opt.labelEn}</span>
+                              <span className="truncate">{isMsgAr ? opt.labelAr : opt.labelEn}</span>
                             </div>
                             <ChevronRight className="w-3.5 h-3.5 shrink-0 text-geovision-blue dark:text-blue-300 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5 rtl:rotate-180 transition-transform" />
                           </button>
