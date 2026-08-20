@@ -532,6 +532,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
           let detFeatId: string | undefined;
           let detFeat: GeoFeature | undefined;
           let showPrivList = false;
+          let isExplicitListRequest = false;
 
           if (lower.includes('explore available data') || lower.includes('explore data') || query.includes('استكشاف البيانات المتاحة') || query.includes('استكشاف البيانات')) {
             setFilterDrawerOpen(true);
@@ -1121,7 +1122,8 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
             };
           }
 
-          const isExplicitListRequest =
+          isExplicitListRequest =
+            isExplicitListRequest ||
             lower.includes('show list') ||
             lower.includes('view list') ||
             lower.includes('show results') ||

@@ -12,7 +12,6 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
-  Layers,
   Search,
   X,
 } from 'lucide-react';
