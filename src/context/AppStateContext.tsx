@@ -514,6 +514,10 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
           setAiStepState('');
 
           const lower = query.toLowerCase();
+          const isArabicQuery = /[\u0600-\u06FF]/.test(query);
+          if (isArabicQuery && language !== 'ar') {
+            setLanguage('ar');
+          }
 
           // Intelligent NLU Matching Engine for 20 Conversational GIS Features
           let responseEn = '';
@@ -549,7 +553,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
           // -------------------------------------------------------------------------
           // Flow Option 1: "Show hospitals in Khalifa City"
           // -------------------------------------------------------------------------
-          else if (lower.includes('hospitals in khalifa city') || lower.includes('hospital in khalifa city') || (lower.includes('khalifa city') && lower.includes('hospital'))) {
+          else if (lower.includes('hospitals in khalifa city') || lower.includes('hospital in khalifa city') || ((lower.includes('khalifa city') || query.includes('مدينة خليفة')) && (lower.includes('hospital') || query.includes('مستشفى') || query.includes('مستشفيات')))) {
             matchedFeats = GEO_FEATURES.filter(f => f.category === 'healthcare' && (f.addressEn.toLowerCase().includes('khalifa city') || f.nameEn.toLowerCase().includes('khalifa') || f.nameEn.toLowerCase().includes('bareen') || f.nameEn.toLowerCase().includes('nmc')));
             responseEn = `Found ${matchedFeats.length} hospitals in Khalifa City. Showing results only within the selected Khalifa City boundary.`;
             responseAr = `عثرت على ${matchedFeats.length} مستشفيات في مدينة خليفة. يتم عرض النتائج فقط ضمن حدود مدينة خليفة المحددة.`;
@@ -564,7 +568,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
           // -------------------------------------------------------------------------
           // Flow Option 2: "Find schools near Yas Island"
           // -------------------------------------------------------------------------
-          else if (lower.includes('schools near yas') || lower.includes('schools in yas') || (lower.includes('yas') && lower.includes('school'))) {
+          else if (lower.includes('schools near yas') || lower.includes('schools in yas') || ((lower.includes('yas') || query.includes('ياس') || query.includes('جزيرة ياس')) && (lower.includes('school') || query.includes('مدرسة') || query.includes('مدارس')))) {
             matchedFeats = GEO_FEATURES.filter(f => f.category === 'education');
             responseEn = `Found ${matchedFeats.length} educational facilities near Yas Island. Showing results within 3 km of Yas Island.`;
             responseAr = `عثرت على ${matchedFeats.length} مؤسسات تعليمية بالقرب من جزيرة ياس. يتم عرض النتائج ضمن نطاق 3 كم من جزيرة ياس.`;
@@ -579,7 +583,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
           // -------------------------------------------------------------------------
           // Flow Option 3: "Show public parks in Abu Dhabi"
           // -------------------------------------------------------------------------
-          else if (lower.includes('public parks in abu dhabi') || lower.includes('show public parks')) {
+          else if (lower.includes('public parks in abu dhabi') || lower.includes('show public parks') || query.includes('حدائق عامة') || query.includes('الحدائق العامة')) {
             matchedFeats = GEO_FEATURES.filter(f => f.category === 'parks');
             responseEn = `Found ${matchedFeats.length} public parks and green recreation spaces across Abu Dhabi including Reem Central Park, Umm Al Emarat Park, and Khalifa City Park.`;
             responseAr = `عثرت على ${matchedFeats.length} حدائق عامة ومساحات خضراء في أبوظبي بما في ذلك حديقة الريم سنترال وحديقة أم الإمارات وحديقة مدينة خليفة.`;
@@ -594,7 +598,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
           // -------------------------------------------------------------------------
           // Flow Option 4: "Analyze government services near Al Reem"
           // -------------------------------------------------------------------------
-          else if (lower.includes('government services near al reem') || lower.includes('al reem') || lower.includes('reem island')) {
+          else if (lower.includes('government services near al reem') || lower.includes('al reem') || lower.includes('reem island') || query.includes('الريم') || query.includes('جزيرة الريم') || query.includes('خدمات حكومية')) {
             matchedFeats = GEO_FEATURES.filter(f => f.category === 'government' || f.category === 'transport' || f.addressEn.toLowerCase().includes('reem'));
             responseEn = `Al Reem Island Government & Public Services Overview: Found ${matchedFeats.length} public service facilities including TAMM Customer Happiness Center, Sorbonne University, and Reem Central Park Hub within 3 km.`;
             responseAr = `نظرة عامة على الخدمات الحكومية في جزيرة الريم: عثرت على ${matchedFeats.length} مراكز خدمات عامة بما في ذلك مركز تم وحديقة الريم سنترال ضمن 3 كم.`;
@@ -839,7 +843,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
           // -------------------------------------------------------------------------
           // FLOW 1 & Section 2: Conversational Follow-up (Schools in Zayed City)
           // -------------------------------------------------------------------------
-          else if (lower.includes('private school') || lower.includes('how many private') || (lower.includes('private') && lower.includes('school'))) {
+          else if (lower.includes('private school') || lower.includes('how many private') || query.includes('مدارس خاصة') || query.includes('المدارس الخاصة') || (lower.includes('private') && lower.includes('school'))) {
             matchedFeats = GEO_FEATURES.filter(f => f.category === 'education' && (
               f.nameEn.toLowerCase().includes('private') ||
               f.nameEn.toLowerCase().includes('gems') ||
@@ -856,7 +860,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
             recsEn = ['Show public schools near Zayed City', 'Show all nurseries in Zayed City', 'show all schools in Zayed City'];
             recsAr = ['عرض المدارس العامة في مدينة زايد', 'عرض جميع الحضانات في مدينة زايد', 'عرض جميع المدارس في مدينة زايد'];
           }
-          else if (lower.includes('only nurseries') || lower.includes('nurseries') || lower.includes('nursery')) {
+          else if (lower.includes('only nurseries') || lower.includes('nurseries') || lower.includes('nursery') || query.includes('حضانات') || query.includes('الحضانات')) {
             matchedFeats = GEO_FEATURES.filter(f => f.category === 'education' && (f.subcategory === 'nurseries' || f.nameEn.toLowerCase().includes('nursery')));
             responseEn = `Context retained (Zayed City · 5 km): Filtered results for nurseries. Found ${matchedFeats.length > 0 ? matchedFeats.length : 4} nurseries matching your selection.`;
             responseAr = `تم الاحتفاظ بالسياق (مدينة زايد · 5 كم): تصفية النتائج للحضانات. عثرت على ${matchedFeats.length > 0 ? matchedFeats.length : 4} حضانات.`;
@@ -867,7 +871,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
             recsEn = ['How many private schools are there in Zayed City?', 'show all schools in Zayed City'];
             recsAr = ['كم عدد المدارس الخاصة في مدينة زايد؟', 'عرض جميع المدارس في مدينة زايد'];
           }
-          else if (lower.includes('public school') || (lower.includes('public') && lower.includes('school'))) {
+          else if (lower.includes('public school') || query.includes('مدارس عامة') || query.includes('المدارس العامة') || (lower.includes('public') && lower.includes('school'))) {
             matchedFeats = GEO_FEATURES.filter(f => f.category === 'education' && !(
               f.nameEn.toLowerCase().includes('private') ||
               f.nameEn.toLowerCase().includes('gems') ||
@@ -880,13 +884,13 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
             recsEn = ['Show private schools', 'Schools in Zayed City', 'Which one is closest?'];
             recsAr = ['عرض المدارس الخاصة', 'مدارس في مدينة زايد', 'أيها الأقرب؟'];
           }
-          else if (lower.includes('zayed city') && (lower.includes('school') || lower.includes('5km'))) {
+          else if ((lower.includes('zayed city') || query.includes('مدينة زايد')) && (lower.includes('school') || query.includes('مدرسة') || query.includes('مدارس') || lower.includes('5km') || query.includes('5 كم') || query.includes('5كم'))) {
             matchedFeats = GEO_FEATURES.filter(f => f.category === 'education');
             responseEn = `Found ${matchedFeats.length} schools in Zayed City within 5 km.`;
             responseAr = `عثرت على ${matchedFeats.length} مدرسة في مدينة زايد ضمن نطاق 5 كم.`;
             newCenter = [24.4012, 54.6051];
             newZoom = 14;
-            const targetRad = lower.includes('2km') || lower.includes('2 km') ? 2 : 5;
+            const targetRad = lower.includes('2km') || lower.includes('2 km') || query.includes('2 كم') ? 2 : 5;
             setBufferRadiusKm(targetRad);
             setSelectedCategoryIds(['education']);
             recsEn = ['Show only nurseries', 'Private schools', 'Montessori schools', 'Schools in Bani Yas', 'Reduce search radius to 2 km'];
