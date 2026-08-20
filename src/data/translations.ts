@@ -53,7 +53,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'map.searchModeAI': 'Ask GeoVision AI',
     'map.searchModeLoc': 'Find Location',
     'map.locPlaceholder': 'Search Abu Dhabi location, district, or landmark...',
-    'map.authoritativeBadge': 'Open GIS Data',
+    'map.authoritativeBadge': 'SDI Open Data',
     'map.externalBadge': 'External Information — Not Authenticated',
 
     // Map Tools
@@ -238,7 +238,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'map.searchModeAI': 'سؤال GeoVision AI',
     'map.searchModeLoc': 'البحث عن موقع',
     'map.locPlaceholder': 'ابحث عن منطقة، حي، أو معلم في أبوظبي...',
-    'map.authoritativeBadge': 'بيانات جغرافية مفتوحة',
+    'map.authoritativeBadge': 'بيانات SDI المفتوحة',
     'map.externalBadge': 'معلومات خارجية — غير موثقة',
 
     // Map Tools

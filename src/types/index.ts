@@ -104,6 +104,19 @@ export interface AIMessage {
   detailsFeatureId?: string;
   detailsFeature?: GeoFeature;
   showPrivateListAction?: boolean;
+  showResultsList?: boolean;
+  categoryBreakdown?: {
+    locationNameEn: string;
+    locationNameAr: string;
+    totalCount: number;
+    items: { categoryId: string; nameEn: string; nameAr: string; count: number; query: string }[];
+  };
+  openHoursBreakdown?: {
+    titleEn: string;
+    titleAr: string;
+    openNowCount: number;
+    closedCount: number;
+  };
   mapAction?: {
     type: 'zoom_and_filter' | 'highlight' | 'buffer' | 'aoi_summary';
     locationName?: string;

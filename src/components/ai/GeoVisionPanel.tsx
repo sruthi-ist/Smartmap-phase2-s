@@ -17,6 +17,7 @@ import {
   RotateCcw,
   Plus,
   Mic,
+  List,
 } from 'lucide-react';
 
 interface GeoVisionPanelProps {
@@ -27,6 +28,7 @@ export const GeoVisionPanel: React.FC<GeoVisionPanelProps> = ({ onClose }) => {
   const {
     language,
     aiMessages,
+    setAiMessages,
     sendAIMessage,
     aiProcessing,
     aiStepState,
@@ -38,7 +40,10 @@ export const GeoVisionPanel: React.FC<GeoVisionPanelProps> = ({ onClose }) => {
     resetConversationContext,
     startNewConversation,
     user,
+    currentView,
     setCurrentView,
+    setFilterDrawerOpen,
+    setActiveTool,
     setGuestPromptOpen,
     showToast,
     t,
@@ -377,17 +382,93 @@ export const GeoVisionPanel: React.FC<GeoVisionPanelProps> = ({ onClose }) => {
                     </div>
                   )}
 
-                  {/* Flow 6: Location Permission Prompt */}
+                  {/* Section 8 & 9: Structured Category Breakdown Component */}
+                  {msg.categoryBreakdown && (
+                    <div className="my-2.5 p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 space-y-2">
+                      <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800 pb-1.5">
+                        <div>
+                          <h4 className="text-xs font-black text-slate-900 dark:text-white">
+                            {language === 'ar' ? msg.categoryBreakdown.locationNameAr : msg.categoryBreakdown.locationNameEn} Overview
+                          </h4>
+                          <span className="text-[10px] text-geovision-blue dark:text-blue-300 font-extrabold">
+                            {language === 'ar' ? `إجمالي الخدمات: ${msg.categoryBreakdown.totalCount}` : `Total Facilities: ${msg.categoryBreakdown.totalCount}`}
+                          </span>
+                        </div>
+                        <Compass className="w-4 h-4 text-geovision-blue shrink-0" />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {msg.categoryBreakdown.items.map((item, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => sendAIMessage(item.query)}
+                            className="flex items-center justify-between p-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 hover:text-geovision-blue border border-slate-200 dark:border-slate-700 text-[11px] font-extrabold transition-all cursor-pointer shadow-2xs group"
+                          >
+                            <span className="truncate">{language === 'ar' ? item.nameAr : item.nameEn}</span>
+                            <span className="px-1.5 py-0.5 rounded-md bg-blue-100 dark:bg-slate-700 text-geovision-blue dark:text-blue-300 text-[10px] font-black group-hover:bg-geovision-blue group-hover:text-white transition-colors">
+                              {item.count}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Section 12 & 13: Open Now / Operating Status Chart Breakdown */}
+                  {msg.openHoursBreakdown && (
+                    <div className="my-2.5 p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 space-y-2">
+                      <p className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                        {language === 'ar' ? msg.openHoursBreakdown.titleAr : msg.openHoursBreakdown.titleEn}
+                      </p>
+                      
+                      <div className="space-y-1.5">
+                        {/* Open Now Bar */}
+                        <div>
+                          <div className="flex items-center justify-between text-[10px] font-black mb-1">
+                            <span className="text-emerald-600 dark:text-emerald-400">{language === 'ar' ? 'مفتوح الآن' : 'Open Now'}</span>
+                            <span className="text-emerald-600 dark:text-emerald-400">{msg.openHoursBreakdown.openNowCount} centers</span>
+                          </div>
+                          <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+                            <div
+                              className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+                              style={{
+                                width: `${(msg.openHoursBreakdown.openNowCount / (msg.openHoursBreakdown.openNowCount + msg.openHoursBreakdown.closedCount)) * 100}%`,
+                              }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Closed Bar */}
+                        {msg.openHoursBreakdown.closedCount > 0 && (
+                          <div>
+                            <div className="flex items-center justify-between text-[10px] font-black mb-1">
+                              <span className="text-rose-500">{language === 'ar' ? 'مغلق حالياً' : 'Closed'}</span>
+                              <span className="text-rose-500">{msg.openHoursBreakdown.closedCount} centers</span>
+                            </div>
+                            <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+                              <div
+                                className="h-full bg-rose-500 rounded-full transition-all duration-500"
+                                style={{
+                                  width: `${(msg.openHoursBreakdown.closedCount / (msg.openHoursBreakdown.openNowCount + msg.openHoursBreakdown.closedCount)) * 100}%`,
+                                }}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Flow 6: Location Permission Notification */}
                   {msg.locationPromptRequired && (
-                    <div className="pt-1">
-                      <button
-                        type="button"
-                        onClick={() => sendAIMessage('enable location')}
-                        className="w-full flex items-center justify-center gap-2 p-2.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 font-extrabold text-xs shadow-md shadow-emerald-500/25 transition-all cursor-pointer"
-                      >
-                        <MapPin className="w-4 h-4 animate-bounce" />
-                        <span>{language === 'ar' ? 'تفعيل خدمة الموقع للمتابعة' : 'Enable Location to Continue'}</span>
-                      </button>
+                    <div className="mt-2.5 p-2.5 rounded-xl bg-blue-50/70 dark:bg-slate-800/70 border border-blue-200/80 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 animate-pulse" />
+                      <span>
+                        {language === 'ar'
+                          ? 'تم طلب إذن الموقع في أعلى الشاشة (بجوار الرابط)...'
+                          : 'Location permission requested at top near URL link...'}
+                      </span>
                     </div>
                   )}
 
@@ -428,7 +509,7 @@ export const GeoVisionPanel: React.FC<GeoVisionPanelProps> = ({ onClose }) => {
                     </div>
 
                     {/* Recommendations Section */}
-                    {((language === 'ar' ? msg.recommendationsAr : msg.recommendationsEn) || []).length > 0 && (
+                    {!msg.noResultsSuggestions && !msg.disambiguationOptions && ((language === 'ar' ? msg.recommendationsAr : msg.recommendationsEn) || []).length > 0 && (
                       <div className="space-y-2 pt-1">
                         <p className="text-xs font-extrabold text-slate-700 dark:text-slate-300">
                           {t('ai.recommendationsTitle')}
@@ -438,11 +519,27 @@ export const GeoVisionPanel: React.FC<GeoVisionPanelProps> = ({ onClose }) => {
                           {(language === 'ar' ? msg.recommendationsAr : msg.recommendationsEn)?.map((recText, idx) => (
                             <button
                               key={idx}
-                              onClick={() => sendAIMessage(recText)}
-                              className="w-full flex items-center justify-between p-2.5 px-3 rounded-xl bg-blue-50/80 dark:bg-slate-800/80 hover:bg-blue-100/90 dark:hover:bg-slate-700 text-geovision-blue dark:text-blue-300 hover:text-blue-950 dark:hover:text-white border border-blue-200/80 dark:border-slate-700/70 hover:border-geovision-blue text-xs font-black text-left rtl:text-right transition-all group cursor-pointer shadow-2xs gap-2 min-w-0"
+                              onClick={() => {
+                                const isExploreReq = recText.toLowerCase().includes('explore available data') || recText.toLowerCase().includes('explore data') || recText.includes('استكشاف البيانات');
+                                const isSketchReq = recText.toLowerCase().includes('sketch') || recText.toLowerCase().includes('aoi') || recText.toLowerCase().includes('aqi') || recText.toLowerCase().includes('draw');
+
+                                if (isExploreReq) {
+                                  if (currentView !== 'map') setCurrentView('map');
+                                  setFilterDrawerOpen(true);
+                                  showToast(language === 'ar' ? 'تم فتح مستكشف الفئات' : 'Category Explorer opened');
+                                } else if (isSketchReq) {
+                                  if (currentView !== 'map') setCurrentView('map');
+                                  setActiveTool('sketch');
+                                  showToast(language === 'ar' ? 'تم فتح أداة الرسم المكانية' : 'Sketch & AOI Tool opened');
+                                  sendAIMessage(recText);
+                                } else {
+                                  sendAIMessage(recText);
+                                }
+                              }}
+                              className="w-full flex items-center justify-between p-2.5 px-3 rounded-xl bg-blue-50/80 hover:bg-blue-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-geovision-blue dark:text-blue-300 font-black border border-blue-200/80 dark:border-slate-700/70 hover:border-geovision-blue text-xs text-left rtl:text-right transition-all cursor-pointer shadow-2xs gap-2 min-w-0 group"
                             >
                               <span className="truncate whitespace-nowrap flex-1">{recText}</span>
-                              <ChevronRight className="w-4 h-4 shrink-0 text-geovision-blue dark:text-blue-300 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5 rtl:rotate-180 transition-transform" />
+                              <ChevronRight className="w-4 h-4 shrink-0 text-geovision-blue dark:text-blue-300 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5 rtl:rotate-180 transition-all" />
                             </button>
                           ))}
                         </div>
@@ -452,8 +549,28 @@ export const GeoVisionPanel: React.FC<GeoVisionPanelProps> = ({ onClose }) => {
                 </div>
               )}
 
-              {/* Render Search Results & Layer Filter Cards inside AI Response */}
-              {msg.matchedFeatures && msg.matchedFeatures.length > 0 && (
+              {/* Action Button to Expand Results List upon User Selection */}
+              {msg.sender === 'ai' && msg.matchedFeatures && msg.matchedFeatures.length > 0 && !msg.showResultsList && !msg.disambiguationOptions && !msg.locationPromptRequired && (
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAiMessages(prev => prev.map(m => m.id === msg.id ? { ...m, showResultsList: true } : m));
+                    }}
+                    className="w-full flex items-center justify-center gap-2 p-2.5 rounded-xl bg-geovision-blue hover:bg-blue-700 text-white font-black text-xs border border-blue-600 transition-all cursor-pointer shadow-md shadow-blue-500/20"
+                  >
+                    <List className="w-4 h-4 shrink-0 text-white" />
+                    <span className="text-white font-black">
+                      {language === 'ar'
+                        ? `عرض قائمة النتائج (${msg.matchedFeatures.length})`
+                        : `View Results List (${msg.matchedFeatures.length})`}
+                    </span>
+                  </button>
+                </div>
+              )}
+
+              {/* Render Search Results Cards ONLY when User Explicitly Requests / Selects Results List */}
+              {msg.matchedFeatures && msg.matchedFeatures.length > 0 && msg.showResultsList && (
                 <AIMessageSearchResults
                   features={msg.matchedFeatures}
                   setSelectedFeature={setSelectedFeature}
@@ -487,6 +604,7 @@ export const GeoVisionPanel: React.FC<GeoVisionPanelProps> = ({ onClose }) => {
 
       {/* Input Form Footer */}
       <div className="p-3 sm:p-4 border-t border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 shrink-0">
+
         <form onSubmit={handleSend} className="relative flex items-center">
           <input
             type="text"

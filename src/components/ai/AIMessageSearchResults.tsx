@@ -10,6 +10,8 @@ import {
   Layers,
   ZoomIn,
   Info,
+  RotateCcw,
+  X,
 } from 'lucide-react';
 
 interface AIMessageSearchResultsProps {
@@ -47,7 +49,24 @@ export const AIMessageSearchResults: React.FC<AIMessageSearchResultsProps> = ({
     'parks',
   ]);
 
-  const [selectedType, setSelectedType] = useState<'all' | 'private' | 'public'>('all');
+  const isFeaturePrivate = (feat: GeoFeature): boolean => {
+    const nameLower = feat.nameEn.toLowerCase();
+    return (
+      nameLower.includes('private') ||
+      nameLower.includes('gems') ||
+      nameLower.includes('al yasmina') ||
+      nameLower.includes('raha international') ||
+      nameLower.includes('bareen') ||
+      nameLower.includes('nmc')
+    );
+  };
+
+  const allArePublic = features.length > 0 && features.every(f => !isFeaturePrivate(f));
+  const allArePrivate = features.length > 0 && features.every(f => isFeaturePrivate(f));
+
+  const [selectedType, setSelectedType] = useState<'all' | 'private' | 'public'>(
+    allArePublic ? 'public' : allArePrivate ? 'private' : 'all'
+  );
   const [layerMenuOpen, setLayerMenuOpen] = useState(false);
   const [typeMenuOpen, setTypeMenuOpen] = useState(false);
   const [searchFilter, setSearchFilter] = useState('');
@@ -78,25 +97,13 @@ export const AIMessageSearchResults: React.FC<AIMessageSearchResultsProps> = ({
     }
   };
 
-  const isFeaturePrivate = (feat: GeoFeature): boolean => {
-    const nameLower = feat.nameEn.toLowerCase();
-    return (
-      nameLower.includes('private') ||
-      nameLower.includes('gems') ||
-      nameLower.includes('al yasmina') ||
-      nameLower.includes('raha international') ||
-      nameLower.includes('bareen') ||
-      nameLower.includes('nmc')
-    );
-  };
-
   const filteredFeatures = features.filter((feat) => {
     // 1. Layer Category Filter
     if (selectedCategories.length > 0 && !selectedCategories.includes(feat.category)) {
       return false;
     }
 
-    // 2. Type Filter (Private vs Public/Government)
+    // 2. Type Filter (Private vs Public)
     const isPriv = isFeaturePrivate(feat);
     if (selectedType === 'private' && !isPriv) return false;
     if (selectedType === 'public' && isPriv) return false;
@@ -123,13 +130,30 @@ export const AIMessageSearchResults: React.FC<AIMessageSearchResultsProps> = ({
   const getTypeButtonLabel = () => {
     if (selectedType === 'all') return language === 'ar' ? 'جميع الأنواع' : 'All Types';
     if (selectedType === 'private') return language === 'ar' ? 'خاص' : 'Private';
-    return language === 'ar' ? 'حكومي / عام' : 'Public / Government';
+    return language === 'ar' ? 'عام' : 'Public';
   };
 
   const isLayerActive = selectedCategories.length < LAYER_OPTIONS.length;
   const isTypeActive = selectedType !== 'all';
+  const hasActiveFilters = isLayerActive || isTypeActive || searchFilter.trim() !== '';
   const displayedFeatures = filteredFeatures.slice(0, visibleCount);
   const isHighVolume = features.length >= 100 || filteredFeatures.length > 20;
+
+  const handleClearFilters = () => {
+    setSearchFilter('');
+    setSelectedCategories([
+      'education',
+      'healthcare',
+      'transport',
+      'environment',
+      'tourism',
+      'utilities',
+      'government',
+      'parks',
+    ]);
+    setSelectedType('all');
+    showToast(language === 'ar' ? 'تمت إعادة تعيين الفلاتر' : 'Result filters cleared');
+  };
 
   return (
     <div className="mt-3.5 space-y-2.5 pt-3 border-t border-slate-200/80 dark:border-slate-700/80">
@@ -153,23 +177,42 @@ export const AIMessageSearchResults: React.FC<AIMessageSearchResultsProps> = ({
 
       {/* Row 1: Search Results Title & Quick Search Input */}
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white">
-          {language === 'ar' ? 'نتائج البحث' : 'Search Results'} ({filteredFeatures.length})
-        </h4>
+        <div className="flex items-center gap-2">
+          <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white">
+            {language === 'ar' ? 'نتائج البحث' : 'Search Results'} ({filteredFeatures.length})
+          </h4>
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={handleClearFilters}
+              className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-50 dark:bg-slate-800 text-geovision-blue dark:text-blue-300 hover:bg-geovision-blue hover:text-white text-[10px] font-extrabold transition-all cursor-pointer shadow-2xs"
+            >
+              <RotateCcw className="w-3 h-3" />
+              <span>{language === 'ar' ? 'إلغاء الفلاتر' : 'Clear Filters'}</span>
+            </button>
+          )}
+        </div>
 
-        {/* Quick Filter Input Box for High Volume Results */}
-        {filteredFeatures.length > 5 && (
-          <div className="relative flex-1 max-w-[170px]">
-            <Search className="w-3 h-3 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 rtl:right-2.5 rtl:left-auto" />
-            <input
-              type="text"
-              value={searchFilter}
-              onChange={(e) => setSearchFilter(e.target.value)}
-              placeholder={language === 'ar' ? 'تصفية النتائج...' : 'Filter results...'}
-              className="w-full pl-7 pr-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-[11px] font-bold text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-1 focus:ring-geovision-blue placeholder:text-slate-400 rtl:pr-7 rtl:pl-2.5"
-            />
-          </div>
-        )}
+        {/* Quick Filter Input Box - ALWAYS AVAILABLE */}
+        <div className="relative flex-1 max-w-[170px]">
+          <Search className="w-3 h-3 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 rtl:right-2.5 rtl:left-auto" />
+          <input
+            type="text"
+            value={searchFilter}
+            onChange={(e) => setSearchFilter(e.target.value)}
+            placeholder={language === 'ar' ? 'تصفية النتائج...' : 'Filter results...'}
+            className="w-full pl-7 pr-7 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-[11px] font-bold text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 focus:outline-hidden focus:ring-1 focus:ring-geovision-blue placeholder:text-slate-400 rtl:pr-7 rtl:pl-7"
+          />
+          {searchFilter && (
+            <button
+              type="button"
+              onClick={() => setSearchFilter('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer rtl:right-auto rtl:left-2"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Row 2: Filter Controls */}
@@ -256,7 +299,7 @@ export const AIMessageSearchResults: React.FC<AIMessageSearchResultsProps> = ({
               {[
                 { id: 'all', label: language === 'ar' ? 'جميع الأنواع' : 'All Types' },
                 { id: 'private', label: language === 'ar' ? 'خاص' : 'Private' },
-                { id: 'public', label: language === 'ar' ? 'حكومي / عام' : 'Public / Government' },
+                { id: 'public', label: language === 'ar' ? 'عام' : 'Public' },
               ].map((opt) => {
                 const isSel = selectedType === opt.id;
                 return (
@@ -330,6 +373,11 @@ export const AIMessageSearchResults: React.FC<AIMessageSearchResultsProps> = ({
                         <MapPin className="w-3 h-3 text-geovision-blue shrink-0" />
                         <span className="truncate">{feat.subcategory} • {feat.distanceKm || 1.5} km</span>
                       </p>
+                      {feat.openStatusEn && (
+                        <span className="text-[10px] font-extrabold text-emerald-600 dark:text-emerald-400 shrink-0 truncate max-w-[140px]">
+                          • {language === 'ar' ? feat.openStatusAr || feat.openStatusEn : feat.openStatusEn}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -377,7 +425,7 @@ export const AIMessageSearchResults: React.FC<AIMessageSearchResultsProps> = ({
           <button
             type="button"
             onClick={() => setVisibleCount(prev => prev + 5)}
-            className="flex-1 py-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-geovision-blue hover:text-white text-slate-700 dark:text-slate-200 font-extrabold text-xs transition-all cursor-pointer text-center shadow-2xs"
+            className="flex-1 py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-black text-xs border border-slate-200 dark:border-slate-700 transition-all cursor-pointer text-center shadow-2xs"
           >
             {language === 'ar'
               ? `عرض المزيد (+5 من أصل ${filteredFeatures.length})`
@@ -387,7 +435,7 @@ export const AIMessageSearchResults: React.FC<AIMessageSearchResultsProps> = ({
           <button
             type="button"
             onClick={() => setVisibleCount(filteredFeatures.length)}
-            className="py-2 px-3 rounded-xl bg-geovision-blue text-white hover:bg-blue-600 font-extrabold text-xs transition-all cursor-pointer text-center shrink-0 shadow-md shadow-blue-500/20"
+            className="py-2 px-3 rounded-xl bg-geovision-blue hover:bg-blue-700 text-white font-black text-xs transition-all cursor-pointer text-center shrink-0 shadow-md shadow-blue-500/25 border border-blue-600"
           >
             {language === 'ar' ? `عرض الكل (${filteredFeatures.length})` : `View All (${filteredFeatures.length})`}
           </button>

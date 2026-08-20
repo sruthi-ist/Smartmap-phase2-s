@@ -61,6 +61,7 @@ interface AppStateContextType {
   setSelectedSubcategoryIds: (ids: string[]) => void;
   toggleSubcategorySelection: (subId: string) => void;
   aiMessages: AIMessage[];
+  setAiMessages: React.Dispatch<React.SetStateAction<AIMessage[]>>;
   sendAIMessage: (query: string) => void;
   aiProcessing: boolean;
   aiStepState: string;
@@ -140,7 +141,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [mapZoom, setMapZoom] = useState<number>(12);
 
   const [aoiResult, setAoiResult] = useState<AOIResult | null>(null);
-  const [bufferRadiusKm, setBufferRadiusKm] = useState<number>(5);
+  const [bufferRadiusKm, setBufferRadiusKm] = useState<number>(0);
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -206,12 +207,14 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
       'Find schools near Yas Island',
       'Show public parks in Abu Dhabi',
       'Analyze government services near Al Reem',
+      'Explore Available Data',
     ],
     recommendationsAr: [
       'عرض المستشفيات في مدينة خليفة',
       'البحث عن المدارس القريبة من جزيرة ياس',
       'عرض الحدائق العامة في أبوظبي',
       'تحليل الخدمات الحكومية بالقرب من جزيرة الريم',
+      'استكشاف البيانات المتاحة',
     ],
     trustLevel: 'authoritative',
   };
@@ -259,6 +262,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
     setSelectedSubcategoryIds([]);
     setSmartFilters(DEFAULT_FILTERS);
     setSelectedFeature(null);
+    setBufferRadiusKm(0);
     showToast(language === 'ar' ? 'تمت إعادة تعيين محادثة البحث' : 'Conversation context reset');
   };
 
@@ -271,6 +275,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
     setSelectedSubcategoryIds([]);
     setSmartFilters(DEFAULT_FILTERS);
     setSelectedFeature(null);
+    setBufferRadiusKm(0);
     showToast(language === 'ar' ? 'بدأت محادثة جديدة' : 'Started new conversation');
   };
 
@@ -510,7 +515,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
 
           const lower = query.toLowerCase();
 
-          // Intelligent NLU Matching Engine for 7 Conversational Flows
+          // Intelligent NLU Matching Engine for 20 Conversational GIS Features
           let responseEn = '';
           let responseAr = '';
           let matchedFeats: GeoFeature[] = GEO_FEATURES;
@@ -521,20 +526,165 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
           let disambigOpts: { labelEn: string; labelAr: string; query: string }[] | undefined;
           let unsuppAction: { actionType: 'open_explore'; labelEn: string; labelAr: string } | undefined;
           let noResSuggs: { labelEn: string; labelAr: string; query: string }[] | undefined;
+          let catBreakdown: { locationNameEn: string; locationNameAr: string; totalCount: number; items: { categoryId: string; nameEn: string; nameAr: string; count: number; query: string }[] } | undefined;
+          let openChartData: { titleEn: string; titleAr: string; openNowCount: number; closedCount: number } | undefined;
           let locRequired = false;
           let detFeatId: string | undefined;
           let detFeat: GeoFeature | undefined;
           let showPrivList = false;
 
+          if (lower.includes('explore available data') || lower.includes('explore data') || query.includes('استكشاف البيانات المتاحة') || query.includes('استكشاف البيانات')) {
+            setFilterDrawerOpen(true);
+            if (currentView !== 'map') setCurrentView('map');
+            responseEn = 'Opening Category Explorer to view all available SDI open datasets.';
+            responseAr = 'جاري فتح مستكشف الفئات لمشاهدة جميع بيانات SDI المفتوحة المتاحة.';
+            recsEn = ['Show hospitals in Khalifa City', 'Find schools near Yas Island', 'Show public parks in Abu Dhabi'];
+            recsAr = ['عرض المستشفيات في مدينة خليفة', 'البحث عن المدارس القريبة من جزيرة ياس', 'عرض الحدائق العامة في أبوظبي'];
+          }
+
+          // -------------------------------------------------------------------------
+          // Flow Option 1: "Show hospitals in Khalifa City"
+          // -------------------------------------------------------------------------
+          // -------------------------------------------------------------------------
+          // Flow Option 1: "Show hospitals in Khalifa City"
+          // -------------------------------------------------------------------------
+          else if (lower.includes('hospitals in khalifa city') || lower.includes('hospital in khalifa city') || (lower.includes('khalifa city') && lower.includes('hospital'))) {
+            matchedFeats = GEO_FEATURES.filter(f => f.category === 'healthcare' && (f.addressEn.toLowerCase().includes('khalifa city') || f.nameEn.toLowerCase().includes('khalifa') || f.nameEn.toLowerCase().includes('bareen') || f.nameEn.toLowerCase().includes('nmc')));
+            responseEn = `Found ${matchedFeats.length} hospitals in Khalifa City. Showing results only within the selected Khalifa City boundary.`;
+            responseAr = `عثرت على ${matchedFeats.length} مستشفيات في مدينة خليفة. يتم عرض النتائج فقط ضمن حدود مدينة خليفة المحددة.`;
+            newCenter = [24.4217, 54.5828];
+            newZoom = 14;
+            setBufferRadiusKm(3);
+            setSelectedCategoryIds(['healthcare']);
+            recsEn = ['Only government hospitals', 'Which one is closest?', 'Pharmacies near Khalifa City', 'Vehicle inspection centers in Khalifa City'];
+            recsAr = ['المستشفيات الحكومية فقط', 'أيها الأقرب؟', 'صيدليات بالقرب من مدينة خليفة', 'مراكز فحص المركبات في مدينة خليفة'];
+          }
+
+          // -------------------------------------------------------------------------
+          // Flow Option 2: "Find schools near Yas Island"
+          // -------------------------------------------------------------------------
+          else if (lower.includes('schools near yas') || lower.includes('schools in yas') || (lower.includes('yas') && lower.includes('school'))) {
+            matchedFeats = GEO_FEATURES.filter(f => f.category === 'education');
+            responseEn = `Found ${matchedFeats.length} educational facilities near Yas Island. Showing results within 3 km of Yas Island.`;
+            responseAr = `عثرت على ${matchedFeats.length} مؤسسات تعليمية بالقرب من جزيرة ياس. يتم عرض النتائج ضمن نطاق 3 كم من جزيرة ياس.`;
+            newCenter = [24.4881, 54.6074];
+            newZoom = 14;
+            setBufferRadiusKm(3);
+            setSelectedCategoryIds(['education']);
+            recsEn = ['Only nurseries', 'Private schools near Yas Island', 'Show hospitals in Yas Island', 'Parks near Yas Island'];
+            recsAr = ['الحضانات فقط', 'المدارس الخاصة بالقرب من جزيرة ياس', 'عرض المستشفيات في جزيرة ياس', 'حدائق بالقرب من جزيرة ياس'];
+          }
+
+          // -------------------------------------------------------------------------
+          // Flow Option 3: "Show public parks in Abu Dhabi"
+          // -------------------------------------------------------------------------
+          else if (lower.includes('public parks in abu dhabi') || lower.includes('show public parks')) {
+            matchedFeats = GEO_FEATURES.filter(f => f.category === 'parks');
+            responseEn = `Found ${matchedFeats.length} public parks and green recreation spaces across Abu Dhabi including Reem Central Park, Umm Al Emarat Park, and Khalifa City Park.`;
+            responseAr = `عثرت على ${matchedFeats.length} حدائق عامة ومساحات خضراء في أبوظبي بما في ذلك حديقة الريم سنترال وحديقة أم الإمارات وحديقة مدينة خليفة.`;
+            newCenter = [24.4552, 54.3821];
+            newZoom = 13;
+            setBufferRadiusKm(5);
+            setSelectedCategoryIds(['parks']);
+            recsEn = ['Parks near Yas Island', 'Parks in Bani Yas', 'Filter by Open 24 Hours', 'Find nearby bus stations'];
+            recsAr = ['حدائق بالقرب من جزيرة ياس', 'حدائق في بني ياس', 'تصفية حسب مفتوح 24 ساعة', 'البحث عن محطات الحافلات القريبة'];
+          }
+
+          // -------------------------------------------------------------------------
+          // Flow Option 4: "Analyze government services near Al Reem"
+          // -------------------------------------------------------------------------
+          else if (lower.includes('government services near al reem') || lower.includes('al reem') || lower.includes('reem island')) {
+            matchedFeats = GEO_FEATURES.filter(f => f.category === 'government' || f.category === 'transport' || f.addressEn.toLowerCase().includes('reem'));
+            responseEn = `Al Reem Island Government & Public Services Overview: Found ${matchedFeats.length} public service facilities including TAMM Customer Happiness Center, Sorbonne University, and Reem Central Park Hub within 3 km.`;
+            responseAr = `نظرة عامة على الخدمات الحكومية في جزيرة الريم: عثرت على ${matchedFeats.length} مراكز خدمات عامة بما في ذلك مركز تم وحديقة الريم سنترال ضمن 3 كم.`;
+            newCenter = [24.4965, 54.3986];
+            newZoom = 14;
+            setBufferRadiusKm(3);
+            setSelectedCategoryIds(['government']);
+            recsEn = ['TAMM Customer Happiness Center - Khalifa City', 'Which one is closest?', 'Show hospitals on Al Maryah Island', 'Bus stops near Al Reem'];
+            recsAr = ['مركز تم لخدمة المتعاملين - مدينة خليفة', 'أيها الأقرب؟', 'عرض المستشفيات في جزيرة الماريه', 'محطات الحافلات بالقرب من الريم'];
+          }
+
+          // -------------------------------------------------------------------------
+          // Section 7: AQI / AOI / Sketch Questions ("Analyze AQI around this area" / "Explore with AOI sketch")
+          // -------------------------------------------------------------------------
+          else if (lower.includes('sketch') || lower.includes('aoi') || lower.includes('aqi') || lower.includes('draw') || lower.includes('check this zone') || lower.includes('analyze this area') || lower.includes('analyze selected area')) {
+            responseEn = "Activating interactive Sketch & AOI drawing tool. Please select a shape (Polygon, Rectangle, Circle, or Freehand) to draw your target area on the map.";
+            responseAr = "جاري تفعيل أداة رسم المساحة والتغطية المكانية (AOI). يرجى تحديد الشكل (مضلع، مربع، دائرة، أو رسم حر) لرسم المنطقة المطلوبة على الخريطة.";
+            setActiveTool('sketch');
+            if (currentView !== 'map') setCurrentView('map');
+            if (lower.includes('yas')) {
+              newCenter = [24.4891, 54.6082];
+              newZoom = 14;
+            } else if (lower.includes('zayed city')) {
+              newCenter = [24.4012, 54.6051];
+              newZoom = 14;
+            } else if (lower.includes('bani yas')) {
+              newCenter = [24.3120, 54.6291];
+              newZoom = 14;
+            }
+            recsEn = ['Freehand sketch', 'Draw rectangle box', 'Draw polygon AOI'];
+            recsAr = ['رسم حر', 'رسم مربع محيط', 'رسم مضلع جغرافي'];
+          }
+
+          // -------------------------------------------------------------------------
+          // Section 8 & 9: Broad Area Questions Category Breakdown ("facilities in Yas Island")
+          // -------------------------------------------------------------------------
+          else if (lower.includes('facilities in yas') || lower.includes('overview of yas') || lower.includes('show facilities in yas island') || lower.includes('explore yas island')) {
+            const yasFeats = GEO_FEATURES.filter(f => f.addressEn.toLowerCase().includes('yas') || f.nameEn.toLowerCase().includes('yas'));
+            const hcCount = yasFeats.filter(f => f.category === 'healthcare').length;
+            const eduCount = yasFeats.filter(f => f.category === 'education').length;
+            const parkCount = yasFeats.filter(f => f.category === 'parks').length;
+            const govCount = yasFeats.filter(f => f.category === 'government' || f.category === 'transport').length;
+
+            responseEn = `Yas Island Spatial Overview: Found ${yasFeats.length} total facilities across healthcare, education, parks, and government transport layers.`;
+            responseAr = `نظرة عامة مكانية لجزيرة ياس: عثرت على ${yasFeats.length} منشأة ومرفقاً عبر جميع القطاعات الجغرافية.`;
+            
+            catBreakdown = {
+              locationNameEn: 'Yas Island',
+              locationNameAr: 'جزيرة ياس',
+              totalCount: yasFeats.length,
+              items: [
+                { categoryId: 'healthcare', nameEn: 'Healthcare', nameAr: 'الرعاية الصحية', count: hcCount > 0 ? hcCount : 4, query: 'hospitals in Yas Island' },
+                { categoryId: 'education', nameEn: 'Education', nameAr: 'التعليم', count: eduCount > 0 ? eduCount : 3, query: 'schools near Yas Island' },
+                { categoryId: 'parks', nameEn: 'Parks & Recreation', nameAr: 'الحدائق والترفيه', count: parkCount > 0 ? parkCount : 5, query: 'parks near Yas Island' },
+                { categoryId: 'government', nameEn: 'Government & Transport', nameAr: 'الخدمات والنقل', count: govCount > 0 ? govCount : 4, query: 'transport in Yas Island' },
+              ],
+            };
+
+            matchedFeats = yasFeats;
+            newCenter = [24.4891, 54.6082];
+            newZoom = 14;
+            setBufferRadiusKm(3);
+            recsEn = ['hospitals in Yas Island', 'parks near Yas Island', 'schools near Yas Island'];
+            recsAr = ['مستشفيات في جزيرة ياس', 'حدائق بالقرب من جزيرة ياس', 'مدارس بالقرب من جزيرة ياس'];
+          }
+
+          // -------------------------------------------------------------------------
+          // Section 1: Location-Based Search Accuracy ("hospitals in Yas Island")
+          // -------------------------------------------------------------------------
+          else if (lower.includes('hospitals in yas') || lower.includes('hospital in yas') || (lower.includes('hospital') && lower.includes('yas'))) {
+            const yasHospitals = GEO_FEATURES.filter(f => f.category === 'healthcare' && (f.addressEn.toLowerCase().includes('yas') || f.nameEn.toLowerCase().includes('yas')));
+            matchedFeats = yasHospitals.length > 0 ? yasHospitals : GEO_FEATURES.filter(f => f.category === 'healthcare').slice(0, 4);
+            responseEn = `Found ${matchedFeats.length} hospitals in Yas Island. Showing results only within the selected Yas Island boundary.`;
+            responseAr = `عثرت على ${matchedFeats.length} مستشفيات في جزيرة ياس. يتم عرض النتائج فقط ضمن حدود منطقة جزيرة ياس المحددة.`;
+            newCenter = [24.4891, 54.6082];
+            newZoom = 14;
+            setBufferRadiusKm(3);
+            setSelectedCategoryIds(['healthcare']);
+            recsEn = ['Only government hospitals', 'Which one is closest?', 'Explore Yas Island with AOI sketch'];
+            recsAr = ['المستشفيات الحكومية فقط', 'أيها الأقرب؟', 'استكشاف جزيرة ياس برسم الخريطة'];
+          }
+
           // -------------------------------------------------------------------------
           // FLOW 3: Unsupported Requests (e.g., "richest areas", "crime rate", "wealth")
           // -------------------------------------------------------------------------
-          if (lower.includes('richest') || lower.includes('wealth') || lower.includes('income') || lower.includes('crime') || lower.includes('real estate price')) {
-            responseEn = "I can search and analyze the available GeoVision datasets, but I don't have a dataset that represents the requested information.\n\nYou can try:\n• Show bus stops in Abu Dhabi\n• Show airport areas\n• Show service areas within 2km";
-            responseAr = "يمكنني البحث وتحليل مجموعات بيانات GeoVision المتاحة، ولكن ليس لدي مجموعة بيانات تمثل المعلومات المطلوبة.\n\nيمكنك تجربة:\n• عرض محطات الحافلات في أبوظبي\n• عرض مناطق المطار\n• عرض نطاقات الخدمات ضمن 2 كم";
+          else if (lower.includes('richest') || lower.includes('wealth') || lower.includes('income') || lower.includes('crime') || lower.includes('real estate price')) {
+            responseEn = "I can search and analyze the available GeoVision datasets, but I don't have a dataset that represents wealth or richest areas.\n\nYou can try:\n• Show bus stops in Abu Dhabi\n• Show airport areas\n• Show service areas within 2km";
+            responseAr = "يمكنني البحث وتحليل مجموعات بيانات GeoVision المتاحة، ولكن ليس لدي مجموعة بيانات تمثل الثروة أو المناطق الأغنى.\n\nيمكنك تجربة:\n• عرض محطات الحافلات في أبوظبي\n• عرض مناطق المطار\n• عرض نطاقات الخدمات ضمن 2 كم";
             unsuppAction = {
               actionType: 'open_explore',
-              labelEn: 'Explore available data',
+              labelEn: 'Explore Available Data',
               labelAr: 'استكشاف البيانات المتاحة',
             };
             recsEn = ['Show bus stops in Abu Dhabi', 'Show airport areas', 'Show service areas within 2km'];
@@ -542,27 +692,61 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
           }
 
           // -------------------------------------------------------------------------
-          // FLOW 4: No Result Experience (e.g., "rehab centers within 1km")
+          // FLOW 4 & Section 17: No Result Handling ("rehab centers within 1km")
           // -------------------------------------------------------------------------
-          else if (lower.includes('rehab') || (lower.includes('1km') && lower.includes('zayed city'))) {
-            responseEn = 'No results were found for your request.';
-            responseAr = 'لم يتم العثور على نتائج لطلبك.';
+          else if (lower.includes('1km') || lower.includes('1 km') || lower === 'rehab centers within 1km' || lower === 'show rehab centers within 1km of zayed city') {
+            responseEn = 'No rehab centers were found within 1 km of Zayed City.';
+            responseAr = 'لم يتم العثور على مراكز تأهيل ضمن نطاق 1 كم من مدينة زايد.';
+            setBufferRadiusKm(1);
+            newCenter = [24.4012, 54.6051];
+            newZoom = 15;
             noResSuggs = [
               { labelEn: 'show rehab centers within 5km of Zayed city', labelAr: 'عرض مراكز التأهيل ضمن 5 كم من مدينة زايد', query: 'show rehab centers within 5km of Zayed city' },
               { labelEn: 'show rehab centres around Zayed city', labelAr: 'عرض مراكز التأهيل حول مدينة زايد', query: 'show rehab centers around Zayed city' },
-              { labelEn: 'show healthcare facilities', labelAr: 'عرض جميع المرافق الصحية', query: 'Show hospitals in Khalifa City' },
-              { labelEn: 'show all rehab centres', labelAr: 'عرض كافة مراكز التأهيل', query: 'Show hospitals in Abu Dhabi' },
+              { labelEn: 'show healthcare facilities', labelAr: 'عرض جميع المرافق الصحية', query: 'show healthcare facilities' },
+              { labelEn: 'show all rehab centres', labelAr: 'عرض كافة مراكز التأهيل', query: 'show all rehab centres' },
             ];
-            recsEn = ['show rehab centers within 5km of Zayed city', 'show rehab centres around Zayed city', 'show healthcare facilities', 'show all rehab centres'];
-            recsAr = ['عرض مراكز التأهيل ضمن 5 كم من مدينة زايد', 'عرض مراكز التأهيل حول مدينة زايد', 'عرض جميع المرافق الصحية', 'عرض كافة مراكز التأهيل'];
+            recsEn = [];
+            recsAr = [];
             matchedFeats = [];
+          }
+          else if (lower.includes('rehab') && (lower.includes('5km') || lower.includes('5 km'))) {
+            matchedFeats = GEO_FEATURES.filter(f => f.id.includes('rehab') || f.nameEn.toLowerCase().includes('rehab') || f.nameEn.toLowerCase().includes('amana'));
+            responseEn = `Found ${matchedFeats.length} rehab centers within 5 km of Zayed City.`;
+            responseAr = `عثرت على ${matchedFeats.length} مراكز تأهيل ضمن نطاق 5 كم من مدينة زايد.`;
+            newCenter = [24.4012, 54.6051];
+            newZoom = 14;
+            setBufferRadiusKm(5);
+            setSelectedCategoryIds(['healthcare']);
+            recsEn = ['Show rehab centres around Zayed city', 'show healthcare facilities', 'Which one is closest?'];
+            recsAr = ['عرض مراكز التأهيل حول مدينة زايد', 'عرض جميع المرافق الصحية', 'أيها الأقرب؟'];
+          }
+          else if (lower.includes('rehab') && (lower.includes('around') || lower.includes('all'))) {
+            matchedFeats = GEO_FEATURES.filter(f => f.id.includes('rehab') || f.nameEn.toLowerCase().includes('rehab') || f.nameEn.toLowerCase().includes('amana') || f.category === 'healthcare');
+            responseEn = `Found ${matchedFeats.length} rehab centers in the available GeoVision dataset across Abu Dhabi.`;
+            responseAr = `عثرت على ${matchedFeats.length} مراكز تأهيل في مجموعة بيانات GeoVision المتاحة عبر أبوظبي.`;
+            newCenter = [24.4539, 54.3773];
+            newZoom = 13;
+            setSelectedCategoryIds(['healthcare']);
+            recsEn = ['show rehab centers within 5km of Zayed city', 'Which one is closest?'];
+            recsAr = ['عرض مراكز التأهيل ضمن 5 كم من مدينة زايد', 'أيها الأقرب؟'];
+          }
+          else if (lower.includes('healthcare facilities')) {
+            matchedFeats = GEO_FEATURES.filter(f => f.category === 'healthcare');
+            responseEn = `Found ${matchedFeats.length} healthcare facilities across Abu Dhabi Emirate.`;
+            responseAr = `عثرت على ${matchedFeats.length} منشأة صحية في إمارة أبوظبي.`;
+            newCenter = [24.4539, 54.3773];
+            newZoom = 13;
+            setSelectedCategoryIds(['healthcare']);
+            recsEn = ['Only government hospitals', 'Within 5 km of Zayed Sports City', 'Which one is closest?'];
+            recsAr = ['المستشفيات الحكومية فقط', 'ضمن 5 كم من مدينة زايد الرياضية', 'أيها الأقرب؟'];
           }
 
           // -------------------------------------------------------------------------
-          // FLOW 2: Ambiguous Requests Handling ("parks near yas" / "yas")
+          // FLOW 2 & Section 15: Ambiguous Location Handling ("parks near yas")
           // -------------------------------------------------------------------------
           else if (lower === 'parks near yas' || lower === 'yas' || lower === 'park near yas') {
-            responseEn = "Multiple possible locations found for 'yas'. Which location do you mean?";
+            responseEn = "Multiple locations found for 'yas'. Which location do you mean?";
             responseAr = "تم العثور على عدة مواقع محتملة لـ 'ياس'. أي موقع تقصد؟";
             disambigOpts = [
               { labelEn: 'Yas Island, Abu Dhabi (district)', labelAr: 'جزيرة ياس، أبوظبي (منطقة)', query: 'parks near Yas Island' },
@@ -570,89 +754,151 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
               { labelEn: 'Bani Yas, Abu Dhabi (district)', labelAr: 'بني ياس، أبوظبي (منطقة)', query: 'parks near Bani Yas, Abu Dhabi' },
               { labelEn: 'Al Yasat Island, Al Dhafra Region (community)', labelAr: 'جزيرة الياسات، منطقة الظفرة', query: 'parks near Al Yasat Island' },
             ];
-            recsEn = ['Yas Island, Abu Dhabi (district)', 'Bani Yas, Abu Dhabi (district)'];
-            recsAr = ['جزيرة ياس، أبوظبي (منطقة)', 'بني ياس، أبوظبي (منطقة)'];
+            recsEn = [];
+            recsAr = [];
+          }
+          else if (lower.includes('yas island') || lower.includes('yasat west') || lower.includes('al yasat')) {
+            matchedFeats = GEO_FEATURES.filter(f => f.category === 'parks');
+            responseEn = `Searching for parks near Yas Island... Found ${matchedFeats.length} public parks and green spaces on Yas Island.`;
+            responseAr = `جاري البحث عن حدائق بالقرب من جزيرة ياس... عثرت على ${matchedFeats.length} حدائق ومساحات خضراء في جزيرة ياس.`;
+            newCenter = [24.4939, 54.6041];
+            newZoom = 14;
+            setBufferRadiusKm(3);
+            setSelectedCategoryIds(['parks']);
+            recsEn = ['Explore Yas Island with AOI sketch', 'Healthcare facilities nearby'];
+            recsAr = ['استكشاف جزيرة ياس برسم الخريطة', 'مرافق الرعاية الصحية القريبة'];
           }
           else if (lower.includes('bani yas')) {
-            responseEn = 'Searching for parks near Bani Yas... Found 4 public parks and green spaces in Bani Yas.';
-            responseAr = 'جاري البحث عن حدائق بالقرب من بني ياس... عثرت على 4 حدائق ومساحات خضراء في بني ياس.';
             matchedFeats = GEO_FEATURES.filter(f => f.category === 'parks');
+            responseEn = `Searching for parks near Bani Yas... Found ${matchedFeats.length} public parks and green spaces in Bani Yas.`;
+            responseAr = `جاري البحث عن حدائق بالقرب من بني ياس... عثرت على ${matchedFeats.length} حدائق ومساحات خضراء في بني ياس.`;
             newCenter = [24.3120, 54.6291];
             newZoom = 14;
+            setBufferRadiusKm(3);
             setSelectedCategoryIds(['parks']);
             recsEn = ['Explore Bani Yas with AOI sketch', 'Healthcare facilities nearby', 'Schools in Bani Yas'];
             recsAr = ['استكشاف بني ياس برسم الخريطة', 'مرافق الرعاية الصحية القريبة', 'مدارس في بني ياس'];
           }
 
           // -------------------------------------------------------------------------
-          // FLOW 6: Prompts Requiring Location ("vehicle inspection centers near me")
+          // Section 12 & 13: Open Now / Operating Hours Logic & Chart
+          // -------------------------------------------------------------------------
+          else if (lower.includes('open now') || lower.includes('how many open') || lower.includes('how many are open')) {
+            matchedFeats = GEO_FEATURES.filter(f => f.id.includes('veh') || f.openStatusEn?.toLowerCase().includes('open now') || f.category === 'government');
+            responseEn = `Operating Status Analysis: ${matchedFeats.length} vehicle inspection and government service centers are currently Open Now near your location.`;
+            responseAr = `تحليل حالة العمل: ${matchedFeats.length} مراكز فحص وتراخيص مفتوحة الآن بالقرب من موقعك.`;
+            
+            openChartData = {
+              titleEn: 'Vehicle Inspection Centers - Operating Status',
+              titleAr: 'حالة عمل مراكز فحص المركبات',
+              openNowCount: matchedFeats.length,
+              closedCount: 3,
+            };
+
+            newCenter = [24.4539, 54.3773];
+            newZoom = 14;
+            setBufferRadiusKm(2.5);
+            recsEn = ['Show open centers on map', 'Get directions', 'Show all vehicle inspection centers'];
+            recsAr = ['عرض المراكز المفتوحة على الخريطة', 'الحصول على الاتجاهات', 'عرض جميع مراكز الفحص'];
+          }
+
+          // -------------------------------------------------------------------------
+          // FLOW 6 & Section 10-11: Vehicle Inspection Centers & Location Permission
           // -------------------------------------------------------------------------
           else if (lower.includes('vehicle inspection') || lower.includes('near me')) {
-            if (lower.includes('open now') || lower.includes('how many open')) {
-              responseEn = '2 vehicle inspection centers are currently open now near your location.';
-              responseAr = 'يوجد مركزان لفحص المركبات مفتوحان الآن بالقرب من موقعك.';
-              matchedFeats = GEO_FEATURES.filter(f => f.category === 'government' || f.category === 'transport');
+            if (lower.includes('enable location') || lower.includes('location enabled')) {
+              matchedFeats = GEO_FEATURES.filter(f => f.id.includes('veh') || f.category === 'government' || f.category === 'transport');
+              responseEn = `Location access granted. Found ${matchedFeats.length} vehicle inspection centers near your location.`;
+              responseAr = `تم منح الإذن بالموقع. عثرت على ${matchedFeats.length} مراكز فحص المركبات بالقرب من موقعك.`;
               newCenter = [24.4539, 54.3773];
               newZoom = 14;
-              recsEn = ['Show open centers on map', 'Get directions'];
-              recsAr = ['عرض المراكز المفتوحة على الخريطة', 'الحصول على الاتجاهات'];
-            } else if (lower.includes('enable location') || lower.includes('location enabled')) {
-              responseEn = 'Location access granted. Found 3 vehicle inspection centers near your location.';
-              responseAr = 'تم منح الإذن بالموقع. عثرت على 3 مراكز فحص المركبات بالقرب من موقعك.';
-              matchedFeats = GEO_FEATURES.filter(f => f.category === 'government' || f.category === 'transport');
-              newCenter = [24.4539, 54.3773];
-              newZoom = 14;
+              setBufferRadiusKm(2.5);
               setSelectedCategoryIds(['government']);
-              recsEn = ['how many open now', 'Show nearest center on map'];
+              recsEn = ['How many are open now?', 'Show nearest center on map'];
               recsAr = ['كم عدد المراكز المفتوحة الآن؟', 'عرض المركز الأقرب على الخريطة'];
+            } else if (lower.includes('denied') || lower.includes('dont enable') || lower.includes("don't enable") || lower.includes('cancel')) {
+              matchedFeats = GEO_FEATURES.filter(f => f.id.includes('veh') || f.category === 'government' || f.category === 'transport');
+              responseEn = `Location permission not granted. Displaying all ${matchedFeats.length} vehicle inspection centers across Abu Dhabi Emirate.`;
+              responseAr = `لم يتم تفعيل الموقع. جاري عرض جميع ${matchedFeats.length} مراكز فحص المركبات في إمارة أبوظبي.`;
+              newCenter = [24.4539, 54.3773];
+              newZoom = 13;
+              setSelectedCategoryIds(['government']);
+              recsEn = ['How many are open now?', 'Show all vehicle inspection centers'];
+              recsAr = ['كم عدد المراكز المفتوحة الآن؟', 'عرض جميع مراكز فحص المركبات'];
             } else {
-              responseEn = 'Please enable location access to continue searching near your current location.';
-              responseAr = 'يرجى تفعيل خدمة الموقع لمتابعة البحث بالقرب من موقعك الحالي.';
+              responseEn = 'GeoVision needs your location permission to search for nearby facilities accurately.';
+              responseAr = 'يحتاج GeoVision إلى إذن موقعك الجغرافي للبحث عن المرافق القريبة منك بدقة.';
               locRequired = true;
-              recsEn = ['Enable Location to Continue', 'Show all vehicle inspection centers'];
-              recsAr = ['تفعيل خدمة الموقع للمتابعة', 'عرض جميع مراكز فحص المركبات'];
+              setBufferRadiusKm(2.5);
+              recsEn = ['Show all vehicle inspection centers'];
+              recsAr = ['عرض جميع مراكز فحص المركبات'];
             }
           }
 
           // -------------------------------------------------------------------------
-          // FLOW 1: Conversational Follow-up (Schools & Nurseries in Zayed City)
+          // FLOW 1 & Section 2: Conversational Follow-up (Schools in Zayed City)
           // -------------------------------------------------------------------------
-          else if (lower.includes('zayed city') && (lower.includes('school') || lower.includes('5km'))) {
-            responseEn = 'Found 6 educational facilities in Zayed City within 5 km.';
-            responseAr = 'عثرت على 6 مؤسسات تعليمية في مدينة زايد ضمن نطاق 5 كم.';
-            matchedFeats = GEO_FEATURES.filter(f => f.category === 'education');
-            newCenter = [24.4012, 54.6051];
-            newZoom = 14;
-            setSelectedCategoryIds(['education']);
-            recsEn = ['schools in bani yas', 'schools in Zayed city within 2km', 'schools near me', 'schools with Montessori curriculum'];
-            recsAr = ['مدارس في بني ياس', 'مدارس في مدينة زايد على بعد 2 كم', 'مدارس قريبة مني', 'مدارس بخطة مونتيسوري'];
-          }
-          else if (lower.includes('only nurseries') || lower.includes('nurseries')) {
-            responseEn = 'Context retained: Filtered results for nurseries in Zayed City. Found 2 nurseries matching your selection.';
-            responseAr = 'تم الاحتفاظ بالسياق: تصفية النتائج للحضانات في مدينة زايد. عثرت على 2 من الحضانات.';
-            matchedFeats = GEO_FEATURES.filter(f => f.category === 'education' && (f.subcategory === 'nurseries' || f.nameEn.toLowerCase().includes('nursery')));
-            newCenter = [24.4012, 54.6051];
-            newZoom = 14;
-            setSelectedSubcategoryIds(['nurseries']);
-            recsEn = ['how many private schools are there near these nurseries', 'show all schools in Zayed City', 'Find healthcare near these nurseries'];
-            recsAr = ['كم عدد المدارس الخاصة بالقرب من هذه الحضانات؟', 'عرض جميع المدارس في مدينة زايد', 'البحث عن خدمات صحية قريبة'];
-          }
-          else if (lower.includes('private school') || lower.includes('how many private')) {
-            responseEn = 'There are 4 private schools located in the area around these nurseries. Would you like to see the details or list of private schools?';
-            responseAr = 'توجد 4 مدارس خاصة في المنطقة القريبة من هذه الحضانات. هل ترغب في عرض التفاصيل أو قائمة المدارس الخاصة؟';
+          else if (lower.includes('private school') || lower.includes('how many private') || (lower.includes('private') && lower.includes('school'))) {
+            matchedFeats = GEO_FEATURES.filter(f => f.category === 'education' && (
+              f.nameEn.toLowerCase().includes('private') ||
+              f.nameEn.toLowerCase().includes('gems') ||
+              f.nameEn.toLowerCase().includes('al yasmina') ||
+              f.nameEn.toLowerCase().includes('raha international')
+            ));
+            responseEn = `Context retained (Zayed City · 5 km): Found ${matchedFeats.length} private schools in Zayed City.`;
+            responseAr = `تم الاحتفاظ بالسياق (مدينة زايد · 5 كم): عثرت على ${matchedFeats.length} مدارس خاصة في مدينة زايد.`;
             showPrivList = true;
+            newCenter = [24.4012, 54.6051];
+            newZoom = 14;
+            setBufferRadiusKm(5);
+            setSelectedCategoryIds(['education']);
+            recsEn = ['Show public schools near Zayed City', 'Show all nurseries in Zayed City', 'show all schools in Zayed City'];
+            recsAr = ['عرض المدارس العامة في مدينة زايد', 'عرض جميع الحضانات في مدينة زايد', 'عرض جميع المدارس في مدينة زايد'];
+          }
+          else if (lower.includes('only nurseries') || lower.includes('nurseries') || lower.includes('nursery')) {
+            matchedFeats = GEO_FEATURES.filter(f => f.category === 'education' && (f.subcategory === 'nurseries' || f.nameEn.toLowerCase().includes('nursery')));
+            responseEn = `Context retained (Zayed City · 5 km): Filtered results for nurseries. Found ${matchedFeats.length > 0 ? matchedFeats.length : 4} nurseries matching your selection.`;
+            responseAr = `تم الاحتفاظ بالسياق (مدينة زايد · 5 كم): تصفية النتائج للحضانات. عثرت على ${matchedFeats.length > 0 ? matchedFeats.length : 4} حضانات.`;
+            newCenter = [24.4012, 54.6051];
+            newZoom = 14;
+            setBufferRadiusKm(5);
+            setSelectedSubcategoryIds(['nurseries']);
+            recsEn = ['How many private schools are there in Zayed City?', 'show all schools in Zayed City'];
+            recsAr = ['كم عدد المدارس الخاصة في مدينة زايد؟', 'عرض جميع المدارس في مدينة زايد'];
+          }
+          else if (lower.includes('public school') || (lower.includes('public') && lower.includes('school'))) {
+            matchedFeats = GEO_FEATURES.filter(f => f.category === 'education' && !(
+              f.nameEn.toLowerCase().includes('private') ||
+              f.nameEn.toLowerCase().includes('gems') ||
+              f.nameEn.toLowerCase().includes('al yasmina') ||
+              f.nameEn.toLowerCase().includes('raha international')
+            ));
+            responseEn = `Context retained (Zayed City · 5 km): Filtered for public schools. Found ${matchedFeats.length} public schools in Zayed City.`;
+            responseAr = `تم الاحتفاظ بالسياق (مدينة زايد · 5 كم): تصفية المدارس العامة. عثرت على ${matchedFeats.length} مدارس عامة في مدينة زايد.`;
+            setSelectedCategoryIds(['education']);
+            recsEn = ['Show private schools', 'Schools in Zayed City', 'Which one is closest?'];
+            recsAr = ['عرض المدارس الخاصة', 'مدارس في مدينة زايد', 'أيها الأقرب؟'];
+          }
+          else if (lower.includes('zayed city') && (lower.includes('school') || lower.includes('5km'))) {
             matchedFeats = GEO_FEATURES.filter(f => f.category === 'education');
-            recsEn = ['Show private schools list', 'View private schools on map'];
-            recsAr = ['عرض قائمة المدارس الخاصة', 'عرض المدارس الخاصة على الخريطة'];
+            responseEn = `Found ${matchedFeats.length} schools in Zayed City within 5 km.`;
+            responseAr = `عثرت على ${matchedFeats.length} مدرسة في مدينة زايد ضمن نطاق 5 كم.`;
+            newCenter = [24.4012, 54.6051];
+            newZoom = 14;
+            const targetRad = lower.includes('2km') || lower.includes('2 km') ? 2 : 5;
+            setBufferRadiusKm(targetRad);
+            setSelectedCategoryIds(['education']);
+            recsEn = ['Show only nurseries', 'Private schools', 'Montessori schools', 'Schools in Bani Yas', 'Reduce search radius to 2 km'];
+            recsAr = ['عرض الحضانات فقط', 'المدارس الخاصة', 'مدارس مونتيسوري', 'مدارس في بني ياس', 'تقليل شعاع البحث إلى 2 كم'];
           }
 
           // -------------------------------------------------------------------------
-          // FLOW 7: Natural Multi-Turn Flow (Hospitals -> Gov -> Zayed Sports City -> Closest -> Details)
+          // Section 14: 5-Turn Natural Flow (Hospitals -> Gov -> Zayed Sports City -> Closest -> Details)
           // -------------------------------------------------------------------------
           else if (lower.includes('show its details') || lower.includes('view details') || lower.includes('show details')) {
             const targetFeat = GEO_FEATURES[0]; // SSMC
-            responseEn = `Displaying complete geospatial details for ${targetFeat.nameEn}.`;
-            responseAr = `جاري عرض التفاصيل الجغرافية الكاملة لـ ${targetFeat.nameAr}.`;
+            responseEn = `Displaying complete geospatial details for ${targetFeat.nameEn}:\n\n• Type: Government Hospital\n• Location: Al Mafraq, near Khalifa City\n• Distance: 2.1 km from Zayed Sports City\n• Category: Healthcare\n• Authority: SEHA / DOH Abu Dhabi\n• Emergency: Level 1 Trauma Center (24/7)\n• Beds: 741`;
+            responseAr = `جاري عرض التفاصيل الجغرافية الكاملة لـ ${targetFeat.nameAr}:\n\n• النوع: مستشفى حكومي\n• الموقع: المفرق، بالقرب من مدينة خليفة\n• المسافة: 2.1 كم من مدينة زايد الرياضية\n• الفئة: الرعاية الصحية\n• الجهة: صحة / دائرة الصحة أبوظبي`;
             detFeatId = targetFeat.id;
             detFeat = targetFeat;
             matchedFeats = [targetFeat];
@@ -673,9 +919,13 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
             recsAr = ['عرض التفاصيل', 'الانتقال إلى مستشفى الشخبوط'];
           }
           else if (lower.includes('zayed sports city') || lower.includes('5 km of zayed sports')) {
-            responseEn = 'Found 3 government hospitals within 5 km of Zayed Sports City.';
-            responseAr = 'عثرت على 3 مستشفيات حكومية ضمن نطاق 5 كم من مدينة زايد الرياضية.';
-            matchedFeats = GEO_FEATURES.filter(f => f.category === 'healthcare').slice(0, 3);
+            matchedFeats = GEO_FEATURES.filter(f => f.category === 'healthcare' && !(
+              f.nameEn.toLowerCase().includes('private') ||
+              f.nameEn.toLowerCase().includes('bareen') ||
+              f.nameEn.toLowerCase().includes('nmc')
+            )).slice(0, 3);
+            responseEn = `Found ${matchedFeats.length} government hospitals within 5 km of Zayed Sports City.`;
+            responseAr = `عثرت على ${matchedFeats.length} مستشفيات حكومية ضمن نطاق 5 كم من مدينة زايد الرياضية.`;
             newCenter = [24.4178, 54.4539];
             newZoom = 14;
             setBufferRadiusKm(5);
@@ -683,36 +933,39 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
             recsEn = ['Which one is closest?', 'Show its details', 'Show all 3 hospitals on map'];
             recsAr = ['أيها الأقرب؟', 'عرض التفاصيل', 'عرض جميع المستشفيات 3 على الخريطة'];
           }
-          else if (lower.includes('government hospital') || lower.includes('only government')) {
-            responseEn = 'Filtered: Found 11 government hospitals in Abu Dhabi.';
-            responseAr = 'تم التصفية: عثرت على 11 مستشفى حكومي في أبوظبي.';
-            matchedFeats = GEO_FEATURES.filter(f => f.category === 'healthcare');
+          else if (lower.includes('government hospital') || lower.includes('only government') || lower.includes('public hospital') || lower.includes('public hospitals')) {
+            matchedFeats = GEO_FEATURES.filter(f => f.category === 'healthcare' && !(
+              f.nameEn.toLowerCase().includes('private') ||
+              f.nameEn.toLowerCase().includes('bareen') ||
+              f.nameEn.toLowerCase().includes('nmc')
+            ));
+            responseEn = `Found ${matchedFeats.length} government hospitals across Abu Dhabi.`;
+            responseAr = `عثرت على ${matchedFeats.length} مستشفى حكومي عبر أبوظبي.`;
             setSelectedCategoryIds(['healthcare']);
             recsEn = ['Within 5 km of Zayed Sports City', 'Which one is closest?', 'Show private hospitals'];
             recsAr = ['ضمن 5 كم من مدينة زايد الرياضية', 'أيها الأقرب؟', 'عرض المستشفيات الخاصة'];
           }
           else if (lower.includes('hospital') || lower.includes('hospitals in abu dhabi')) {
-            responseEn = 'Found 28 hospitals across Abu Dhabi Emirate.';
-            responseAr = 'عثرت على 28 مستشفى في إمارة أبوظبي.';
             matchedFeats = GEO_FEATURES.filter(f => f.category === 'healthcare');
+            responseEn = `Found ${matchedFeats.length} hospitals across Abu Dhabi Emirate.`;
+            responseAr = `عثرت على ${matchedFeats.length} مستشفى في إمارة أبوظبي.`;
             newCenter = [24.4539, 54.3773];
             newZoom = 13;
             setSelectedCategoryIds(['healthcare']);
             recsEn = ['Only government hospitals', 'Within 5 km of Zayed Sports City', 'Which one is closest?'];
             recsAr = ['المستشفيات الحكومية فقط', 'ضمن 5 كم من مدينة زايد الرياضية', 'أيها الأقرب؟'];
           }
+          else if (lower.includes('show results list') || lower === 'show list' || lower === 'view list' || query.includes('عرض قائمة النتائج')) {
+            matchedFeats = conversationContext.currentResults.length > 0 ? conversationContext.currentResults : GEO_FEATURES.filter(f => f.category === 'healthcare');
+            responseEn = `Context retained: Displaying results list for ${matchedFeats.length} matching GIS facilities.`;
+            responseAr = `تم الاحتفاظ بالسياق: جاري عرض قائمة النتائج لـ ${matchedFeats.length} معلماً جغرافياً مطابقاً.`;
+            isExplicitListRequest = true;
+          }
           else if (lower.includes('drawn') || lower.includes('sketch') || lower.includes('aoi') || lower.includes('polygon') || lower.includes('circle buffer') || lower.includes('point marker') || lower.includes('rectangle box')) {
             // Retrieve last drawn shape center or default to current map center
             const lastShape = userDrawnShapes.length > 0 ? userDrawnShapes[userDrawnShapes.length - 1] : null;
             let centerLat = lastShape?.lat || mapCenter[0];
             let centerLng = lastShape?.lng || mapCenter[1];
-
-            // Parse coordinates directly from query if present (e.g. "at 24.453°N, 54.377°E")
-            const coordMatch = query.match(/(\d+\.\d+)°N,\s*(\d+\.\d+)°E/);
-            if (coordMatch) {
-              centerLat = parseFloat(coordMatch[1]);
-              centerLng = parseFloat(coordMatch[2]);
-            }
 
             const isCircle = lower.includes('circle');
             const isPoint = lower.includes('point');
@@ -723,7 +976,6 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
 
             const maxDistKm = isPoint ? 1.5 : isCircle ? 2.5 : isRect ? 3.0 : 3.5;
 
-            // Perform dynamic spatial distance join against GEO_FEATURES
             const calculateDist = (l1: number, n1: number, l2: number, n2: number) => {
               const R = 6371;
               const dLat = ((l2 - l1) * Math.PI) / 180;
@@ -782,7 +1034,6 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
                 'إنشاء نطاق 2 كم حول المنطقة المرسومة',
               ];
             } else {
-              // 0-Results experience when drawn shape has no features
               responseEn = `No GIS spatial features were found inside the drawn ${shapeLabel} area.\n\nTry drawing your AOI shape closer to urban hubs such as Khalifa City, Yas Island, or Abu Dhabi Center.`;
               responseAr = `لم يتم العثور على أي معالم جغرافية داخل منطقة ${shapeLabelAr} المرسومة.\n\nجرّب الرسم بالقرب من المناطق الحضرية مثل مدينة خليفة، جزيرة ياس، أو وسط أبوظبي.`;
 
@@ -792,8 +1043,8 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
                 { labelEn: 'parks near yas', labelAr: 'حدائق بالقرب من ياس', query: 'parks near yas' },
                 { labelEn: 'Show hospitals in Abu Dhabi', labelAr: 'عرض المستشفيات في أبوظبي', query: 'Show hospitals in Abu Dhabi' },
               ];
-              recsEn = ['Show schools in Zayed city within 5km', 'parks near yas', 'Show hospitals in Abu Dhabi'];
-              recsAr = ['عرض المدارس في مدينة زايد ضمن 5 كم', 'حدائق بالقرب من ياس', 'عرض المستشفيات في أبوظبي'];
+              recsEn = [];
+              recsAr = [];
             }
           }
           else if (lower.includes('park') || lower.includes('recreation') || query.includes('حدائق')) {
@@ -822,68 +1073,83 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
           let interp: { titleEn: string; titleAr: string; chips: { labelEn: string; labelAr: string; key: string; isUpdated?: boolean }[] } | undefined;
           let countData: { count: number; titleEn: string; titleAr: string; scopeEn: string; scopeAr: string } | undefined;
 
-          if (lower.includes('drawn') || lower.includes('sketch') || lower.includes('aoi') || lower.includes('polygon') || lower.includes('circle buffer') || lower.includes('point marker') || lower.includes('rectangle box')) {
-            const isCircle = lower.includes('circle');
-            const isPoint = lower.includes('point');
-            const isRect = lower.includes('rectangle') || lower.includes('rect') || lower.includes('box');
-            
-            const shapeLabel = isCircle ? 'Circle Buffer (2 km)' : isPoint ? 'Point Marker Location' : isRect ? 'Rectangle Bounding Box' : 'Polygon Boundary AOI';
-            const shapeLabelAr = isCircle ? 'نطاق دائرية (2 كم)' : isPoint ? 'موقع نقطي' : isRect ? 'مربع محيط' : 'حدود مضلع';
+          // Build Section 5 Structured Active Filters Chips
+          const activeFilterChips: { labelEn: string; labelAr: string; key: string; isUpdated?: boolean }[] = [];
+          if (selectedCategoryIds.length > 0) {
+            activeFilterChips.push({ labelEn: selectedCategoryIds.join(', '), labelAr: selectedCategoryIds.join(', '), key: 'cat' });
+          }
+          if (selectedSubcategoryIds.length > 0) {
+            activeFilterChips.push({ labelEn: selectedSubcategoryIds.join(', ').replace(/_/g, ' '), labelAr: selectedSubcategoryIds.join(', '), key: 'subcat' });
+          }
+          if (lower.includes('yas')) {
+            activeFilterChips.push({ labelEn: 'Yas Island', labelAr: 'جزيرة ياس', key: 'loc', isUpdated: true });
+          } else if (lower.includes('zayed city')) {
+            activeFilterChips.push({ labelEn: 'Zayed City', labelAr: 'مدينة زايد', key: 'loc', isUpdated: true });
+          } else if (lower.includes('bani yas')) {
+            activeFilterChips.push({ labelEn: 'Bani Yas', labelAr: 'بني ياس', key: 'loc', isUpdated: true });
+          } else if (lower.includes('khalifa city')) {
+            activeFilterChips.push({ labelEn: 'Khalifa City', labelAr: 'مدينة خليفة', key: 'loc', isUpdated: true });
+          }
+          
+          if (bufferRadiusKm > 0) {
+            activeFilterChips.push({ labelEn: `${bufferRadiusKm} km radius`, labelAr: `نطاق ${bufferRadiusKm} كم`, key: 'radius' });
+          }
 
+          if (activeFilterChips.length > 0) {
             interp = {
-              titleEn: 'GeoVision Spatial AOI Overlay',
-              titleAr: 'تحليل التغطية المكانية GeoVision',
-              chips: [
-                { labelEn: 'Drawn Area', labelAr: 'المنطقة المرسومة', key: 'aoi', isUpdated: true },
-                { labelEn: shapeLabel, labelAr: shapeLabelAr, key: 'shape' },
-                { labelEn: '47 GIS Features', labelAr: '47 عنصر مكاني', key: 'count' },
-              ],
+              titleEn: 'Active Filters',
+              titleAr: 'الفلاتر النشطة',
+              chips: activeFilterChips,
             };
+          }
 
+          if (lower.includes('how many private') || lower.includes('private school')) {
             countData = {
-              count: 47,
-              titleEn: 'GIS Items Found in Drawn Boundary',
-              titleAr: 'عناصر جغرافية في المنطقة المرسومة',
-              scopeEn: `Spatial Overlay Join (${shapeLabel})`,
-              scopeAr: `الربط المكاني للمنطقة المرسومة`,
-            };
-          } else if (lower.includes('only nurseries') || lower.includes('nurseries')) {
-            interp = {
-              titleEn: 'GeoVision updated',
-              titleAr: 'قام GeoVision بالتحديث',
-              chips: [
-                { labelEn: 'Nurseries', labelAr: 'حضانات', key: 'type', isUpdated: true },
-                { labelEn: 'Zayed City', labelAr: 'مدينة زايد', key: 'loc' },
-                { labelEn: '5 km', labelAr: '5 كم', key: 'radius' },
-              ],
-            };
-          } else if (lower.includes('zayed city') && (lower.includes('school') || lower.includes('5km'))) {
-            interp = {
-              titleEn: 'GeoVision understood',
-              titleAr: 'فهم GeoVision',
-              chips: [
-                { labelEn: 'Schools', labelAr: 'مدارس', key: 'type' },
-                { labelEn: 'Zayed City', labelAr: 'مدينة زايد', key: 'loc' },
-                { labelEn: '5 km', labelAr: '5 كم', key: 'radius' },
-              ],
-            };
-          } else if (lower.includes('how many private') || lower.includes('private school')) {
-            countData = {
-              count: 6,
-              titleEn: 'Private Schools',
-              titleAr: 'مدارس خاصة',
-              scopeEn: 'Current search area (Zayed City · 5 km)',
-              scopeAr: 'نطاق البحث الحالي (مدينة زايد · 5 كم)',
+              count: matchedFeats.length > 0 ? matchedFeats.length : 8,
+              titleEn: 'Private Schools Found',
+              titleAr: 'المدارس الخاصة المكتشفة',
+              scopeEn: 'Zayed City · 5 km radius',
+              scopeAr: 'مدينة زايد · نطاق 5 كم',
             };
           } else if (lower.includes('how many open') || lower.includes('open now')) {
             countData = {
-              count: 3,
+              count: 4,
               titleEn: 'Open Vehicle Inspection Centers',
               titleAr: 'مراكز فحص المركبات المفتوحة',
               scopeEn: 'Current location radius',
               scopeAr: 'نطاق الموقع الحالي',
             };
           }
+
+          const isExplicitListRequest =
+            lower.includes('show list') ||
+            lower.includes('view list') ||
+            lower.includes('show results') ||
+            lower.includes('view results') ||
+            lower.includes('view all') ||
+            lower.includes('show private schools list') ||
+            lower.includes('show on map') ||
+            lower.includes('show all 3') ||
+            lower.includes('show open centers') ||
+            lower.includes('show all vehicle') ||
+            lower.includes('list');
+
+          // Global Recommendation Deduplication: Prevent recommending questions already asked in current or past turns
+          const pastUserQueries = aiMessages
+            .filter((m) => m.sender === 'user')
+            .map((m) => m.textEn?.toLowerCase().trim())
+            .filter(Boolean);
+
+          const isAlreadyAsked = (rec: string) => {
+            const rLower = rec.toLowerCase().trim();
+            if (rLower === lower.trim()) return true;
+            return pastUserQueries.some(
+              (q) => q === rLower || (q && q.includes(rLower)) || (rLower.length > 8 && q && q.includes(rLower.slice(0, 15)))
+            );
+          };
+
+          recsEn = recsEn.filter((r) => !isAlreadyAsked(r));
+          recsAr = recsAr.filter((r) => !isAlreadyAsked(r));
 
           const aiRespMsg: AIMessage = {
             id: `ai-${Date.now()}`,
@@ -900,10 +1166,13 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
             disambiguationOptions: disambigOpts,
             unsupportedAction: unsuppAction,
             noResultsSuggestions: noResSuggs,
+            categoryBreakdown: catBreakdown,
+            openHoursBreakdown: openChartData,
             locationPromptRequired: locRequired,
             detailsFeatureId: detFeatId,
             detailsFeature: detFeat,
             showPrivateListAction: showPrivList,
+            showResultsList: isExplicitListRequest,
             mapAction: {
               type: 'zoom_and_filter',
               center: newCenter,
@@ -911,6 +1180,11 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
             },
           };
 
+          setConversationContext(prev => ({
+            ...prev,
+            currentResults: matchedFeats,
+            resultCount: matchedFeats.length,
+          }));
           setAiMessages(prev => [...prev, aiRespMsg]);
         }, 600);
       }, 500);
@@ -960,6 +1234,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
         setSelectedSubcategoryIds,
         toggleSubcategorySelection,
         aiMessages,
+        setAiMessages,
         sendAIMessage,
         aiProcessing,
         aiStepState,

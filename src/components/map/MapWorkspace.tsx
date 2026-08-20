@@ -220,7 +220,7 @@ export const MapWorkspace: React.FC = () => {
     });
   }, [filteredFeatures, language, setSelectedFeature]);
 
-  // Render Buffer Circle geometry
+  // Render Selected Focused Area Ring geometry for AI & Map Interactions
   useEffect(() => {
     if (!mapInstanceRef.current) return;
 
@@ -229,19 +229,26 @@ export const MapWorkspace: React.FC = () => {
       bufferCircleRef.current = null;
     }
 
-    if (activeTool === 'buffer') {
+    if (bufferRadiusKm && bufferRadiusKm > 0) {
       const circle = L.circle(mapCenter, {
         radius: bufferRadiusKm * 1000,
-        color: '#176BFF',
-        fillColor: '#176BFF',
-        fillOpacity: 0.15,
+        color: '#215A9E',
+        fillColor: '#215A9E',
+        fillOpacity: 0.14,
         weight: 2.5,
         dashArray: '6, 6',
       }).addTo(mapInstanceRef.current);
 
+      circle.bindTooltip(
+        `<div style="font-family:sans-serif;font-weight:900;font-size:11px;color:#063360;padding:2px 6px;">
+          📍 Selected Focused Area (${bufferRadiusKm} km)
+        </div>`,
+        { permanent: false, direction: 'top', className: 'glass-tooltip' }
+      );
+
       bufferCircleRef.current = circle;
     }
-  }, [activeTool, bufferRadiusKm, mapCenter]);
+  }, [bufferRadiusKm, mapCenter]);
 
   // Render AOI Polygon geometry
   useEffect(() => {
@@ -577,26 +584,6 @@ export const MapWorkspace: React.FC = () => {
   return (
     <div className="relative w-full h-screen pt-[84px] sm:pt-[88px] overflow-hidden flex flex-col md:flex-row bg-spatial-canvas">
       
-      {/* Floating Data & Filter Drawer */}
-      {filterDrawerOpen && (
-        <div className="absolute top-20 left-4 z-[600] w-80 sm:w-96 glass-level-3 rounded-3xl p-4 shadow-2xl border border-white/80 dark:border-slate-800 animate-slide-in">
-          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2 mb-3">
-            <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-              <Layers className="w-4 h-4 text-geovision-blue" />
-              GIS Discovery & Smart Filters
-            </h3>
-            <button
-              onClick={() => setFilterDrawerOpen(false)}
-              className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-
-          <SmartFilterPanel />
-        </div>
-      )}
-
       {/* Main 90% Visual Canvas Map */}
       <div className="relative flex-1 h-full w-full overflow-hidden">
         
@@ -605,6 +592,26 @@ export const MapWorkspace: React.FC = () => {
 
         {/* Floating Tool Dock */}
         <MapToolbar />
+
+        {/* Floating Data & Filter Drawer */}
+        {filterDrawerOpen && (
+          <div className="absolute top-4 sm:top-6 left-[72px] sm:left-[80px] z-[600] w-64 sm:w-72 h-[408px] max-h-[calc(100vh-160px)] glass-level-3 rounded-3xl p-3 sm:p-3.5 shadow-2xl border border-white/80 dark:border-slate-800 animate-slide-in flex flex-col overflow-hidden pointer-events-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2 mb-2 shrink-0">
+              <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                <Layers className="w-4 h-4 text-geovision-blue" />
+                GIS Categories
+              </h3>
+              <button
+                onClick={() => setFilterDrawerOpen(false)}
+                className="p-1 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <SmartFilterPanel />
+          </div>
+        )}
 
         {/* Active Floating Tool Panels */}
         {activeTool === 'basemap' && <BasemapGallery />}

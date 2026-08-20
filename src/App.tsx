@@ -13,6 +13,7 @@ import { AuthModal } from './components/auth/AuthModal';
 import { GuestPromptModal } from './components/auth/GuestPromptModal';
 import { FeedbackModal } from './components/common/FeedbackModal';
 import { Toast } from './components/common/Toast';
+import { LocationPermissionPopup } from './components/common/LocationPermissionPopup';
 
 const MainContent: React.FC = () => {
   const { currentView } = useAppState();
@@ -41,6 +42,7 @@ export function App() {
         <GuestPromptModal />
         <FeedbackModal />
         <Toast />
+        <LocationPermissionPopup />
       </div>
     </AppStateProvider>
   );

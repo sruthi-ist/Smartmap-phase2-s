@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAppState } from '../../context/AppStateContext';
 import {
+  Compass,
   Pencil,
   Layers,
   List,
@@ -16,6 +17,7 @@ export const MapToolbar: React.FC = () => {
   const {
     activeTool,
     setActiveTool,
+    filterDrawerOpen,
     setFilterDrawerOpen,
     mapCenter,
     mapZoom,
@@ -23,6 +25,11 @@ export const MapToolbar: React.FC = () => {
     showToast,
     language,
   } = useAppState();
+
+  const handleExploreToggle = () => {
+    setActiveTool('none');
+    setFilterDrawerOpen(!filterDrawerOpen);
+  };
 
   const handleDrawToggle = () => {
     setFilterDrawerOpen(false);
@@ -82,11 +89,23 @@ export const MapToolbar: React.FC = () => {
 
   return (
     <>
-      <div className="absolute top-16 sm:top-20 left-3 sm:left-4 rtl:left-auto rtl:right-3 sm:rtl:right-4 z-[600] flex flex-col gap-2 items-center">
+      <div className="absolute top-4 sm:top-6 left-3 sm:left-4 rtl:left-auto rtl:right-3 sm:rtl:right-4 z-[600] flex flex-col gap-2 items-center">
         
-        {/* Top Capsule: Draw, Basemap, Legend */}
+        {/* Top Capsule: Explore, Draw, Basemap, Legend */}
         <div className="glass-level-3 bg-white/85 dark:bg-slate-900/90 backdrop-blur-xl p-1 rounded-2xl shadow-xl border border-white/80 dark:border-slate-700/80 flex flex-col items-center gap-1 w-12 sm:w-13">
           
+          {/* Explore */}
+          <button
+            onClick={handleExploreToggle}
+            className={`w-full py-1.5 px-0.5 rounded-xl flex flex-col items-center gap-0.5 transition-all cursor-pointer ${getToolBtnStyle(
+              filterDrawerOpen
+            )}`}
+            title={language === 'ar' ? 'استكشاف معالم GIS والتصفية' : 'Explore GIS Datasets & Filters'}
+          >
+            <Compass className="w-4 h-4 stroke-[2]" />
+            <span className="text-[8px] font-extrabold tracking-tight leading-none">{language === 'ar' ? 'استكشاف' : 'Explore'}</span>
+          </button>
+
           {/* Draw */}
           <button
             onClick={handleDrawToggle}
