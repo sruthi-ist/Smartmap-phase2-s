@@ -588,6 +588,7 @@ export const MapWorkspace: React.FC = () => {
   }, [activeTool, drawTool, setUserDrawnShapes, sendAIMessage, showToast]);
 
 
+  // Invalidate Leaflet Map Size on AI Panel toggle and window resize
 
   // Invalidate Leaflet Map Size on AI Panel toggle and window resize
   useEffect(() => {
@@ -685,8 +686,8 @@ export const MapWorkspace: React.FC = () => {
                   >
                     <div
                       className={`w-4 h-4 rounded-full flex items-center justify-center transition-all shrink-0 ${isSelected
-                          ? 'border-2 border-geovision-blue'
-                          : 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800'
+                        ? 'border-2 border-geovision-blue'
+                        : 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800'
                         }`}
                     >
                       {isSelected && <div className="w-2 h-2 rounded-full bg-geovision-blue" />}
@@ -730,8 +731,8 @@ export const MapWorkspace: React.FC = () => {
       {/* Original Right Side Docked GeoVision AI Panel */}
       <div
         className={`transition-all duration-300 ${aiPanelOpen
-            ? 'fixed md:relative inset-x-0 bottom-0 top-auto z-[700] md:z-20 h-[65vh] max-h-[500px] md:max-h-none md:h-full w-full md:w-[430px] lg:w-[470px] rounded-t-3xl md:rounded-none shadow-2xl border-t md:border-t-0 border-slate-200 dark:border-slate-800'
-            : 'w-0 h-0 overflow-hidden hidden'
+          ? 'fixed md:relative inset-x-0 bottom-0 top-auto z-[700] md:z-20 h-[65vh] max-h-[500px] md:max-h-none md:h-full w-full md:w-[430px] lg:w-[470px] rounded-t-3xl md:rounded-none shadow-2xl border-t md:border-t-0 border-slate-200 dark:border-slate-800'
+          : 'w-0 h-0 overflow-hidden hidden'
           } shrink-0`}
       >
         <GeoVisionPanel onClose={() => setAiPanelOpen(false)} />
