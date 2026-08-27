@@ -118,7 +118,7 @@ export const SmartFilterPanel: React.FC = () => {
 
   return (
     <div className="w-full flex-1 flex flex-col min-h-0 space-y-2 text-slate-900 dark:text-slate-100">
-      
+
       {/* Sub-header with Category count & Clear All button */}
       <div className="flex items-center justify-between pb-0.5 shrink-0">
         <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
@@ -167,92 +167,95 @@ export const SmartFilterPanel: React.FC = () => {
             const isExpanded = expandedCatIds.includes(cat.id) || Boolean(searchTerm.trim());
             const isFullyChecked = isCategoryFullyChecked(cat.id);
 
-          return (
-            <div
-              key={cat.id}
-              className={`rounded-2xl p-2.5 border transition-all ${
-                isSelected
+            return (
+              <div
+                key={cat.id}
+                className={`rounded-2xl p-2.5 border transition-all ${isSelected
                   ? 'bg-blue-50/80 dark:bg-slate-800/90 border-geovision-blue/50 shadow-2xs'
                   : 'bg-slate-50/80 dark:bg-slate-800/40 border-slate-200/70 dark:border-slate-700/60'
-              }`}
-            >
-              {/* Category Header Row */}
-              <div className="flex items-center justify-between gap-2">
-                <div
-                  className="flex items-center gap-2.5 flex-1 cursor-pointer select-none"
-                  onClick={() => toggleCategorySelection(cat.id)}
-                >
-                  <div className="w-6 h-6 rounded-lg bg-geovision-blue text-white flex items-center justify-center shrink-0 shadow-2xs">
-                    <IconComp className="w-3.5 h-3.5" />
+                  }`}
+              >
+                {/* Category Header Row */}
+                <div className="flex items-center justify-between gap-2">
+                  <div
+                    className="flex items-center gap-2.5 flex-1 cursor-pointer select-none"
+                    onClick={() => toggleCategorySelection(cat.id)}
+                  >
+                    <div className="w-6 h-6 rounded-lg bg-geovision-blue text-white flex items-center justify-center shrink-0 shadow-2xs">
+                      <IconComp className="w-3.5 h-3.5" />
+                    </div>
+                    <span className="text-xs font-black text-slate-900 dark:text-white">
+                      {language === 'ar' ? cat.nameAr : cat.nameEn}
+                    </span>
+                    {isSelected && <Check className="w-3.5 h-3.5 text-geovision-blue stroke-[3]" />}
                   </div>
-                  <span className="text-xs font-black text-slate-900 dark:text-white">
-                    {language === 'ar' ? cat.nameAr : cat.nameEn}
-                  </span>
-                  {isSelected && <Check className="w-3.5 h-3.5 text-geovision-blue stroke-[3]" />}
+
+                  <button
+                    onClick={() => toggleExpand(cat.id)}
+                    className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer rounded-lg hover:bg-slate-200/50 dark:hover:bg-slate-700/50 transition-colors"
+                    title="Toggle Subcategories"
+                  >
+                    {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                  </button>
                 </div>
 
-                <button
-                  onClick={() => toggleExpand(cat.id)}
-                  className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer rounded-lg hover:bg-slate-200/50 dark:hover:bg-slate-700/50 transition-colors"
-                  title="Toggle Subcategories"
-                >
-                  {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                </button>
-              </div>
+                {/* Subcategory Checklist */}
+                {isExpanded && (
+                  <div className="mt-2 pt-2 border-t border-slate-200/50 dark:border-slate-700/60 space-y-1.5">
+                    <div className="flex justify-end">
+                      <button
+                        onClick={() => toggleSelectAllSubcategories(cat.id)}
+                        className="text-[9px] font-black uppercase tracking-wider text-geovision-blue dark:text-blue-400 hover:underline cursor-pointer"
+                      >
+                        {isFullyChecked ? 'Deselect All' : 'Select All'}
+                      </button>
+                    </div>
 
-              {/* Subcategory Checklist */}
-              {isExpanded && (
-                <div className="mt-2 pt-2 border-t border-slate-200/50 dark:border-slate-700/60 space-y-1.5">
-                  <div className="flex justify-end">
-                    <button
-                      onClick={() => toggleSelectAllSubcategories(cat.id)}
-                      className="text-[9px] font-black uppercase tracking-wider text-geovision-blue dark:text-blue-400 hover:underline cursor-pointer"
-                    >
-                      {isFullyChecked ? 'Deselect All' : 'Select All'}
-                    </button>
-                  </div>
+                    <div className="space-y-0.5">
+                      {cat.subcategories.map((sub) => {
+                        const isSubChecked = selectedSubcategoryIds.includes(sub.id);
 
-                  <div className="space-y-0.5">
-                    {cat.subcategories.map((sub) => {
-                      const isSubChecked = selectedSubcategoryIds.includes(sub.id);
-
-                      return (
-                        <div
-                          key={sub.id}
-                          onClick={() => toggleSubcategorySelection(sub.id)}
-                          className="flex items-center justify-between py-1 px-2 rounded-xl hover:bg-white/90 dark:hover:bg-slate-700/60 cursor-pointer transition-colors select-none"
-                        >
-                          <div className="flex items-center gap-2">
-                            <div
-                              className={`w-3.5 h-3.5 rounded border flex items-center justify-center transition-colors ${
-                                isSubChecked
+                        return (
+                          <div
+                            key={sub.id}
+                            onClick={() => toggleSubcategorySelection(sub.id)}
+                            className="flex items-center justify-between py-1 px-2 rounded-xl hover:bg-white/90 dark:hover:bg-slate-700/60 cursor-pointer transition-colors select-none"
+                          >
+                            <div className="flex items-center gap-2">
+                              <div
+                                className={`w-3.5 h-3.5 rounded border flex items-center justify-center transition-colors ${isSubChecked
                                   ? 'bg-geovision-blue border-geovision-blue text-white'
                                   : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900'
-                              }`}
-                            >
-                              {isSubChecked && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                                  }`}
+                              >
+                                {isSubChecked && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                              </div>
+                              <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200">
+                                {language === 'ar' ? sub.nameAr : sub.nameEn}
+                              </span>
                             </div>
-                            <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200">
-                              {language === 'ar' ? sub.nameAr : sub.nameEn}
+
+                            <span className="text-[9px] font-bold text-slate-400">
+                              {sub.count}
                             </span>
                           </div>
-
-                          <span className="text-[9px] font-bold text-slate-400">
-                            {sub.count}
-                          </span>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
-          );
-        })
-      )}
+                )}
+              </div>
+            );
+          })
+        )}
       </div>
 
     </div>
   );
 };
+
+
+
+
+
 
