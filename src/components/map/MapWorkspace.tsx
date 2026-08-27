@@ -364,18 +364,19 @@ export const MapWorkspace: React.FC = () => {
       let closestFeat: GeoFeature | null = null;
       let minD = Infinity;
 
-      GEO_FEATURES.forEach((f) => {
+      for (const f of GEO_FEATURES) {
         const d = Math.hypot(f.lat - latlng.lat, f.lng - latlng.lng);
         if (d < minD) {
           minD = d;
           closestFeat = f;
         }
-      });
+      }
 
       if (closestFeat && minD < 0.25) {
-        setSelectedFeature(closestFeat);
-        showToast(language === 'ar' ? `تم تحديد المعلم: ${closestFeat.nameAr}` : `Selected GIS Feature: ${closestFeat.nameEn}`);
-        map.flyTo([closestFeat.lat, closestFeat.lng], 15);
+        const feat: GeoFeature = closestFeat;
+        setSelectedFeature(feat);
+        showToast(language === 'ar' ? `تم تحديد المعلم: ${feat.nameAr}` : `Selected GIS Feature: ${feat.nameEn}`);
+        map.flyTo([feat.lat, feat.lng], 15);
       }
     };
 

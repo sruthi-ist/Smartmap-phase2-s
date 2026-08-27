@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAppState } from '../../context/AppStateContext';
+import { GEO_FEATURES } from '../../data/mockAbuDhabiData';
 import {
   Compass,
   Pencil,
@@ -27,7 +28,6 @@ export const MapToolbar: React.FC = () => {
     selectedFeature,
     setSelectedFeature,
     filteredFeatures,
-    GEO_FEATURES,
   } = useAppState();
 
   const handleExploreToggle = () => {
