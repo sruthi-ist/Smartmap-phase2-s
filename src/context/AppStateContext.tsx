@@ -21,6 +21,7 @@ import { GEO_FEATURES } from '../data/mockAbuDhabiData';
 export type AppView = 'home' | 'map' | 'categories' | 'about' | 'help' | 'favorites' | 'history' | 'profile';
 
 interface AppStateContextType {
+
   language: Language;
   setLanguage: (lang: Language) => void;
   theme: Theme;
@@ -60,6 +61,7 @@ interface AppStateContextType {
   selectedSubcategoryIds: string[];
   setSelectedSubcategoryIds: (ids: string[]) => void;
   toggleSubcategorySelection: (subId: string) => void;
+  GEO_FEATURES: GeoFeature[];
   aiMessages: AIMessage[];
   setAiMessages: React.Dispatch<React.SetStateAction<AIMessage[]>>;
   sendAIMessage: (query: string) => void;
@@ -115,7 +117,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [theme, setTheme] = useState<Theme>('light');
   const [currentView, setCurrentView] = useState<AppView>('home');
   const [user, setUser] = useState<User>(GUEST_USER);
-  
+
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [guestPromptOpen, setGuestPromptOpen] = useState(false);
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
@@ -288,7 +290,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
     setConversationSessions([]);
     try {
       localStorage.removeItem('geovision_chat_sessions');
-    } catch (e) {}
+    } catch (e) { }
     showToast(language === 'ar' ? 'تم مسح السجل بالكامل' : 'All conversation history cleared');
   };
 
@@ -420,8 +422,8 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
   // Filtered Features computation based on category selection, subcategory checklist & smart filters
   const filteredFeatures = GEO_FEATURES.filter(feat => {
     // Active categories: either selectedCategoryIds or smartFilters.categories
-    const activeCats = selectedCategoryIds.length > 0 
-      ? selectedCategoryIds 
+    const activeCats = selectedCategoryIds.length > 0
+      ? selectedCategoryIds
       : (smartFilters.categories.length > 0 ? smartFilters.categories : []);
 
     // 1. Do not show features on the map unless a category or subcategory is explicitly selected
@@ -469,13 +471,13 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
     };
 
     setAiMessages(prev => [...prev, userMsg]);
-    
+
     // Automatically record session into history list
     setConversationSessions(prev => {
       const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const sessDate = `Today • ${nowTime}`;
       const sessId = currentSessionId || `sess-${Date.now()}`;
-      
+
       const existingIdx = prev.findIndex(s => s.id === sessId);
       if (existingIdx >= 0) {
         const updated = [...prev];
@@ -551,14 +553,14 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
 
           const isGenericBasemapRequest =
             (lower.includes('basemap') ||
-            lower.includes('base map') ||
-            lower.includes('map style') ||
-            lower.includes('map layer') ||
-            lower.includes('map type') ||
-            query.includes('خريطة الأساس') ||
-            query.includes('الخرائط الأساسية') ||
-            query.includes('نمط الخريطة') ||
-            query.includes('تغيير الخريطة')) &&
+              lower.includes('base map') ||
+              lower.includes('map style') ||
+              lower.includes('map layer') ||
+              lower.includes('map type') ||
+              query.includes('خريطة الأساس') ||
+              query.includes('الخرائط الأساسية') ||
+              query.includes('نمط الخريطة') ||
+              query.includes('تغيير الخريطة')) &&
             !isSatelliteRequest &&
             !isLightRequest &&
             !isStreetsRequest;
@@ -602,11 +604,11 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
 
           const isZoomOutRequest =
             (lower === 'zoom out' ||
-            lower === 'zoomout' ||
-            lower.includes('zoom out') ||
-            lower.includes('zoom back') ||
-            query.includes('تصغير') ||
-            query.includes('تصغير الخريطة')) &&
+              lower === 'zoomout' ||
+              lower.includes('zoom out') ||
+              lower.includes('zoom back') ||
+              query.includes('تصغير') ||
+              query.includes('تصغير الخريطة')) &&
             !isZoomInRequest;
 
           const isHomeExtentRequest =
@@ -761,7 +763,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
           else if (isSelectRequest && !lower.includes('hospital') && !lower.includes('school') && !lower.includes('park') && !lower.includes('center')) {
             setActiveTool('identify');
             if (currentView !== 'map') setCurrentView('map');
-            
+
             const featToSelect = selectedFeature || (conversationContext.currentResults.length > 0 ? conversationContext.currentResults[0] : GEO_FEATURES[0]);
             if (featToSelect) {
               setSelectedFeature(featToSelect);
@@ -981,9 +983,9 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
               const a =
                 Math.sin(dLat / 2) * Math.sin(dLat / 2) +
                 Math.cos((l1 * Math.PI) / 180) *
-                  Math.cos((l2 * Math.PI) / 180) *
-                  Math.sin(dLon / 2) *
-                  Math.sin(dLon / 2);
+                Math.cos((l2 * Math.PI) / 180) *
+                Math.sin(dLon / 2) *
+                Math.sin(dLon / 2);
               const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
               return R * c;
             };
@@ -1153,7 +1155,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
 
             responseEn = `Yas Island Spatial Overview: Found ${yasFeats.length} total facilities across healthcare, education, parks, and government transport layers.`;
             responseAr = `نظرة عامة مكانية لجزيرة ياس: عثرت على ${yasFeats.length} منشأة ومرفقاً عبر جميع القطاعات الجغرافية.`;
-            
+
             catBreakdown = {
               locationNameEn: 'Yas Island',
               locationNameAr: 'جزيرة ياس',
@@ -1301,7 +1303,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
             matchedFeats = GEO_FEATURES.filter(f => f.id.includes('veh') || f.openStatusEn?.toLowerCase().includes('open now') || f.category === 'government');
             responseEn = `Operating Status Analysis: ${matchedFeats.length} vehicle inspection and government service centers are currently Open Now near your location.`;
             responseAr = `تحليل حالة العمل: ${matchedFeats.length} مراكز فحص وتراخيص مفتوحة الآن بالقرب من موقعك.`;
-            
+
             openChartData = {
               titleEn: 'Vehicle Inspection Centers - Operating Status',
               titleAr: 'حالة عمل مراكز فحص المركبات',
@@ -1518,7 +1520,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
           } else if (lower.includes('khalifa city')) {
             activeFilterChips.push({ labelEn: 'Khalifa City', labelAr: 'مدينة خليفة', key: 'loc', isUpdated: true });
           }
-          
+
           if (bufferRadiusKm > 0) {
             activeFilterChips.push({ labelEn: `${bufferRadiusKm} km radius`, labelAr: `نطاق ${bufferRadiusKm} كم`, key: 'radius' });
           }
@@ -1699,6 +1701,8 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
         setUserLocation,
         t,
         filteredFeatures,
+        GEO_FEATURES,
+
       }}
     >
       {children}

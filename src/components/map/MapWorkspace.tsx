@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import { useAppState } from '../../context/AppStateContext';
 import { GEO_FEATURES } from '../../data/mockAbuDhabiData';
-import type { DrawnShape } from '../../types';
+import type { DrawnShape, GeoFeature } from '../../types';
 import { MapToolbar } from './MapToolbar';
 import { IdentifyPanel } from './IdentifyPanel';
 import { BasemapGallery } from './BasemapGallery';
@@ -615,10 +615,10 @@ export const MapWorkspace: React.FC = () => {
 
   return (
     <div className="relative w-full h-screen pt-[84px] sm:pt-[88px] overflow-hidden flex flex-col md:flex-row bg-spatial-canvas">
-      
+
       {/* Main 90% Visual Canvas Map */}
       <div className="relative flex-1 h-full w-full overflow-hidden">
-        
+
         {/* Leaflet Map Canvas */}
         <div ref={mapContainerRef} className="w-full h-full z-0" />
 
@@ -659,7 +659,7 @@ export const MapWorkspace: React.FC = () => {
 
         {/* Bottom Coordinates & Scale Capsule Status Bar with Format Radio Selector */}
         <div className="hidden sm:block absolute bottom-3 left-16 sm:left-20 rtl:left-auto rtl:right-16 sm:rtl:right-20 z-[600]" ref={coordRef}>
-          
+
           {/* Radio Button Popover Dropdown (Matches Reference Image) */}
           {coordMenuOpen && (
             <div className="absolute bottom-full left-0 mb-2.5 z-[9999] w-44 p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-700/90 shadow-2xl shadow-slate-950/20 space-y-1.5 animate-in fade-in zoom-in-95 duration-150">
@@ -683,11 +683,10 @@ export const MapWorkspace: React.FC = () => {
                     className="flex items-center gap-2.5 px-2 py-1.5 rounded-xl cursor-pointer hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors"
                   >
                     <div
-                      className={`w-4 h-4 rounded-full flex items-center justify-center transition-all shrink-0 ${
-                        isSelected
+                      className={`w-4 h-4 rounded-full flex items-center justify-center transition-all shrink-0 ${isSelected
                           ? 'border-2 border-geovision-blue'
                           : 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800'
-                      }`}
+                        }`}
                     >
                       {isSelected && <div className="w-2 h-2 rounded-full bg-geovision-blue" />}
                     </div>
@@ -702,7 +701,7 @@ export const MapWorkspace: React.FC = () => {
 
           {/* Status Bar Capsule */}
           <div className="flex items-center gap-3 glass-level-1 px-4 py-2 rounded-2xl border border-white/70 dark:border-slate-800 text-[11px] font-black text-slate-800 dark:text-slate-200 shadow-lg">
-            
+
             {/* Format Dropdown Button */}
             <button
               type="button"
@@ -729,11 +728,10 @@ export const MapWorkspace: React.FC = () => {
 
       {/* Original Right Side Docked GeoVision AI Panel */}
       <div
-        className={`transition-all duration-300 ${
-          aiPanelOpen
+        className={`transition-all duration-300 ${aiPanelOpen
             ? 'fixed md:relative inset-x-0 bottom-0 top-auto z-[700] md:z-20 h-[65vh] max-h-[500px] md:max-h-none md:h-full w-full md:w-[430px] lg:w-[470px] rounded-t-3xl md:rounded-none shadow-2xl border-t md:border-t-0 border-slate-200 dark:border-slate-800'
             : 'w-0 h-0 overflow-hidden hidden'
-        } shrink-0`}
+          } shrink-0`}
       >
         <GeoVisionPanel onClose={() => setAiPanelOpen(false)} />
       </div>
