@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import { useAppState } from '../../context/AppStateContext';
+import { GEO_FEATURES } from '../../data/mockAbuDhabiData';
 import type { DrawnShape } from '../../types';
 import { MapToolbar } from './MapToolbar';
 import { IdentifyPanel } from './IdentifyPanel';
@@ -352,6 +353,37 @@ export const MapWorkspace: React.FC = () => {
   const tempPointsRef = useRef<L.LatLng[]>([]);
   const isDrawingRef = useRef<boolean>(false);
   const startLatLngRef = useRef<L.LatLng | null>(null);
+
+  // Handle Map Click for Identify / Select Tool
+  useEffect(() => {
+    if (!mapInstanceRef.current || activeTool !== 'identify') return;
+
+    const map = mapInstanceRef.current;
+    const handleIdentifyMapClick = (e: L.LeafletMouseEvent) => {
+      const latlng = e.latlng;
+      let closestFeat: GeoFeature | null = null;
+      let minD = Infinity;
+
+      GEO_FEATURES.forEach((f) => {
+        const d = Math.hypot(f.lat - latlng.lat, f.lng - latlng.lng);
+        if (d < minD) {
+          minD = d;
+          closestFeat = f;
+        }
+      });
+
+      if (closestFeat && minD < 0.25) {
+        setSelectedFeature(closestFeat);
+        showToast(language === 'ar' ? `تم تحديد المعلم: ${closestFeat.nameAr}` : `Selected GIS Feature: ${closestFeat.nameEn}`);
+        map.flyTo([closestFeat.lat, closestFeat.lng], 15);
+      }
+    };
+
+    map.on('click', handleIdentifyMapClick);
+    return () => {
+      map.off('click', handleIdentifyMapClick);
+    };
+  }, [activeTool, language, setSelectedFeature, showToast, GEO_FEATURES]);
 
   // Handle Freehand Interactive Map Drawing for All Tools (Circle, Rect, Polygon, Point)
   useEffect(() => {

@@ -518,10 +518,63 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
 
           const lower = query.toLowerCase();
 
+          // Intelligent NLU Basemap Intent Detection
+          const isSatelliteRequest =
+            lower.includes('satellite') ||
+            lower.includes('imagery') ||
+            lower.includes('aerial') ||
+            query.includes('فضائية') ||
+            query.includes('أقمار صناعية') ||
+            query.includes('قمر صناعي');
+
+          const isLightRequest =
+            lower.includes('light canvas') ||
+            lower.includes('light map') ||
+            lower.includes('light basemap') ||
+            lower.includes('light mode') ||
+            lower.includes('canvas map') ||
+            (lower.includes('light') && (lower.includes('basemap') || lower.includes('map') || lower.includes('view') || lower.includes('layer'))) ||
+            query.includes('فاتحة') ||
+            query.includes('الخلفية الفاتحة') ||
+            query.includes('خريطة فاتحة');
+
+          const isStreetsRequest =
+            lower.includes('streets') ||
+            lower.includes('street map') ||
+            lower.includes('vector map') ||
+            lower.includes('road map') ||
+            lower.includes('standard map') ||
+            (lower.includes('street') && (lower.includes('basemap') || lower.includes('map') || lower.includes('view') || lower.includes('layer'))) ||
+            query.includes('شوارع') ||
+            query.includes('خريطة الشوارع') ||
+            query.includes('شوارع موجهة');
+
+          const isGenericBasemapRequest =
+            (lower.includes('basemap') ||
+            lower.includes('base map') ||
+            lower.includes('map style') ||
+            lower.includes('map layer') ||
+            lower.includes('map type') ||
+            query.includes('خريطة الأساس') ||
+            query.includes('الخرائط الأساسية') ||
+            query.includes('نمط الخريطة') ||
+            query.includes('تغيير الخريطة')) &&
+            !isSatelliteRequest &&
+            !isLightRequest &&
+            !isStreetsRequest;
+
+          if (isSatelliteRequest) {
+            setActiveBasemap('satellite');
+          } else if (isLightRequest) {
+            setActiveBasemap('light');
+          } else if (isStreetsRequest) {
+            setActiveBasemap('streets');
+          }
+
           // Intelligent NLU Matching Engine for 20 Conversational GIS Features
           let responseEn = '';
           let responseAr = '';
-          let matchedFeats: GeoFeature[] = GEO_FEATURES;
+          let matchedFeats: GeoFeature[] = [];
           let newCenter: [number, number] = [24.4539, 54.3773];
           let newZoom = 13;
           let recsEn: string[] = [];
@@ -537,7 +590,238 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
           let showPrivList = false;
           let isExplicitListRequest = false;
 
-          if (lower.includes('explore available data') || lower.includes('explore data') || query.includes('استكشاف البيانات المتاحة') || query.includes('استكشاف البيانات')) {
+          // Intelligent NLU Map Navigation Intent Detection
+          const isZoomInRequest =
+            lower === 'zoom in' ||
+            lower === 'zoomin' ||
+            lower.includes('zoom in') ||
+            lower.includes('zoom closer') ||
+            lower.includes('zoom inside') ||
+            query.includes('تكبير') ||
+            query.includes('تكبير الخريطة');
+
+          const isZoomOutRequest =
+            (lower === 'zoom out' ||
+            lower === 'zoomout' ||
+            lower.includes('zoom out') ||
+            lower.includes('zoom back') ||
+            query.includes('تصغير') ||
+            query.includes('تصغير الخريطة')) &&
+            !isZoomInRequest;
+
+          const isHomeExtentRequest =
+            lower === 'home' ||
+            lower === 'home extent' ||
+            lower.includes('reset map') ||
+            lower.includes('reset view') ||
+            lower.includes('home extent') ||
+            lower.includes('default extent') ||
+            lower.includes('default view') ||
+            lower.includes('home view') ||
+            query.includes('الرئيسية') ||
+            query.includes('الافتراضي') ||
+            query.includes('إعادة تعيين') ||
+            query.includes('إعادة ضبط الخريطة');
+
+          const isLocateRequest =
+            lower === 'locate me' ||
+            lower === 'my location' ||
+            lower.includes('current location') ||
+            lower.includes('find my position') ||
+            query.includes('موقعي') ||
+            query.includes('الموقع الحالي');
+
+          const isCompassRequest =
+            lower === 'compass' ||
+            lower.includes('compass') ||
+            lower.includes('north') ||
+            lower.includes('orient north') ||
+            lower.includes('reset compass') ||
+            lower.includes('align north') ||
+            query.includes('البوصلة') ||
+            query.includes('الشمال');
+
+          const isSelectRequest =
+            lower === 'select' ||
+            lower === 'identify' ||
+            lower.includes('select tool') ||
+            lower.includes('identify tool') ||
+            lower.includes('select feature') ||
+            lower.includes('inspect feature') ||
+            lower.includes('feature inspector') ||
+            query.includes('تحديد') ||
+            query.includes('التعرف على المعالم') ||
+            query.includes('أداة التحديد');
+
+          // -------------------------------------------------------------------------
+          // Section: Map Navigation & Zoom Controls via AI Chat (Zoom In, Zoom Out, Home)
+          // -------------------------------------------------------------------------
+          if (isZoomInRequest) {
+            const targetZoom = Math.min(mapZoom + 2, 18);
+            newZoom = targetZoom;
+            newCenter = mapCenter;
+
+            if (lower.includes('hospital') || lower.includes('healthcare') || query.includes('مستشفى')) {
+              matchedFeats = GEO_FEATURES.filter(f => f.category === 'healthcare');
+              setSelectedCategoryIds(['healthcare']);
+            } else if (lower.includes('school') || lower.includes('education') || query.includes('مدرسة')) {
+              matchedFeats = GEO_FEATURES.filter(f => f.category === 'education');
+              setSelectedCategoryIds(['education']);
+            } else if (lower.includes('park') || lower.includes('green') || query.includes('حديقة')) {
+              matchedFeats = GEO_FEATURES.filter(f => f.category === 'parks');
+              setSelectedCategoryIds(['parks']);
+            } else if (lower.includes('government') || query.includes('حكومية')) {
+              matchedFeats = GEO_FEATURES.filter(f => f.category === 'government');
+              setSelectedCategoryIds(['government']);
+            } else if (conversationContext.currentResults.length > 0) {
+              matchedFeats = conversationContext.currentResults;
+            } else {
+              matchedFeats = [];
+            }
+
+            if (lower.includes('khalifa city')) newCenter = [24.4217, 54.5828];
+            else if (lower.includes('yas')) newCenter = [24.4881, 54.6074];
+            else if (lower.includes('zayed city')) newCenter = [24.4012, 54.6051];
+
+            setMapCenterAndZoom(newCenter, newZoom);
+            if (currentView !== 'map') setCurrentView('map');
+
+            const contentText = matchedFeats.length > 0 ? ` displaying ${matchedFeats.length} spatial features` : '';
+            responseEn = `Zoomed in map view to level ${newZoom}${contentText}.`;
+            responseAr = `تم تكبير الخريطة إلى المستوى ${newZoom}${matchedFeats.length > 0 ? ` وعرض ${matchedFeats.length} معلماً جغرافياً` : ''}.`;
+            recsEn = ['Zoom out', 'Reset home extent', 'Switch to Satellite view'];
+            recsAr = ['تصغير', 'إعادة تعيين النطاق', 'التبديل إلى الصور الفضائية'];
+          }
+          else if (isZoomOutRequest) {
+            const targetZoom = Math.max(mapZoom - 2, 3);
+            newZoom = targetZoom;
+            newCenter = mapCenter;
+
+            if (lower.includes('hospital') || lower.includes('healthcare') || query.includes('مستشفى')) {
+              matchedFeats = GEO_FEATURES.filter(f => f.category === 'healthcare');
+              setSelectedCategoryIds(['healthcare']);
+            } else if (lower.includes('school') || lower.includes('education') || query.includes('مدرسة')) {
+              matchedFeats = GEO_FEATURES.filter(f => f.category === 'education');
+              setSelectedCategoryIds(['education']);
+            } else if (lower.includes('park') || lower.includes('green') || query.includes('حديقة')) {
+              matchedFeats = GEO_FEATURES.filter(f => f.category === 'parks');
+              setSelectedCategoryIds(['parks']);
+            } else if (lower.includes('government') || query.includes('حكومية')) {
+              matchedFeats = GEO_FEATURES.filter(f => f.category === 'government');
+              setSelectedCategoryIds(['government']);
+            } else if (conversationContext.currentResults.length > 0) {
+              matchedFeats = conversationContext.currentResults;
+            } else {
+              matchedFeats = [];
+            }
+
+            setMapCenterAndZoom(newCenter, newZoom);
+            if (currentView !== 'map') setCurrentView('map');
+
+            const contentText = matchedFeats.length > 0 ? ` displaying ${matchedFeats.length} spatial features` : '';
+            responseEn = `Zoomed out map view to level ${newZoom}${contentText}.`;
+            responseAr = `تم تصغير الخريطة إلى المستوى ${newZoom}${matchedFeats.length > 0 ? ` وعرض ${matchedFeats.length} معلماً جغرافياً` : ''}.`;
+            recsEn = ['Zoom in', 'Reset home extent', 'Switch to Satellite view'];
+            recsAr = ['تكبير', 'إعادة تعيين النطاق', 'التبديل إلى الصور الفضائية'];
+          }
+          else if (isHomeExtentRequest) {
+            newCenter = [24.4539, 54.3773];
+            newZoom = 12;
+            setMapCenterAndZoom(newCenter, newZoom);
+            if (currentView !== 'map') setCurrentView('map');
+            matchedFeats = [];
+            responseEn = 'Map view reset to default Abu Dhabi home extent.';
+            responseAr = 'تمت إعادة ضبط الخريطة إلى النطاق الافتراضي لأبوظبي.';
+            recsEn = ['Zoom in', 'Switch to Satellite view', 'Show hospitals in Abu Dhabi'];
+            recsAr = ['تكبير', 'التبديل إلى الصور الفضائية', 'عرض المستشفيات في أبوظبي'];
+          }
+          else if (isLocateRequest) {
+            newCenter = [24.4539, 54.3773];
+            newZoom = 15;
+            setMapCenterAndZoom(newCenter, newZoom);
+            if (currentView !== 'map') setCurrentView('map');
+            matchedFeats = [];
+            responseEn = 'Map centered on your current location (Abu Dhabi City Center).';
+            responseAr = 'تم تحديد موقعك الحالي والتكبير على وسط مدينة أبوظبي.';
+            recsEn = ['Zoom out', 'Reset home extent', 'Find nearby bus stations'];
+            recsAr = ['تصغير', 'إعادة تعيين النطاق', 'البحث عن محطات الحافلات القريبة'];
+          }
+          else if (isCompassRequest && !lower.includes('hospital') && !lower.includes('school') && !lower.includes('park') && !lower.includes('center')) {
+            newCenter = mapCenter;
+            newZoom = mapZoom;
+            setMapCenterAndZoom(mapCenter, mapZoom);
+            if (currentView !== 'map') setCurrentView('map');
+            matchedFeats = [];
+            responseEn = 'Map orientation aligned to North (0°). Compass reset complete.';
+            responseAr = 'تم توجيه الخريطة إلى الشمال (0°). اكتمل ضبط البوصلة.';
+            recsEn = ['Zoom in', 'Reset home extent', 'Switch to Satellite view'];
+            recsAr = ['تكبير', 'إعادة تعيين النطاق', 'التبديل إلى الصور الفضائية'];
+            showToast(language === 'ar' ? 'تم توجيه الخريطة إلى الشمال (0°)' : 'Map orientation set to North (0°)');
+          }
+          else if (isSelectRequest && !lower.includes('hospital') && !lower.includes('school') && !lower.includes('park') && !lower.includes('center')) {
+            setActiveTool('identify');
+            if (currentView !== 'map') setCurrentView('map');
+            
+            const featToSelect = selectedFeature || (conversationContext.currentResults.length > 0 ? conversationContext.currentResults[0] : GEO_FEATURES[0]);
+            if (featToSelect) {
+              setSelectedFeature(featToSelect);
+              newCenter = [featToSelect.lat, featToSelect.lng];
+              newZoom = 15;
+              matchedFeats = [featToSelect];
+              responseEn = `Activating Feature Select & Inspector tool. Selected ${featToSelect.nameEn} (${featToSelect.category}).`;
+              responseAr = `جاري تفعيل أداة التحديد ومعاينة المعالم. تم تحديد ${featToSelect.nameAr}.`;
+            } else {
+              matchedFeats = [];
+              responseEn = 'Activating Feature Select & Inspector tool. Click any feature or marker on the map to inspect details.';
+              responseAr = 'جاري تفعيل أداة التحديد. انقر على أي معلم أو رمز في الخريطة لمعاينة الخصائص المكانية.';
+            }
+
+            recsEn = ['Save to Favorites', 'Reset home extent', 'Show hospitals in Abu Dhabi'];
+            recsAr = ['حفظ في المفضلة', 'إعادة تعيين النطاق', 'عرض المستشفيات في أبوظبي'];
+            showToast(language === 'ar' ? 'تم تفعيل أداة التحديد' : 'Select Tool active: Click any feature marker on map');
+          }
+          else if (isSatelliteRequest && !lower.includes('hospital') && !lower.includes('school') && !lower.includes('park') && !lower.includes('center') && !lower.includes('rehab')) {
+            setActiveBasemap('satellite');
+            if (currentView !== 'map') setCurrentView('map');
+            responseEn = 'Basemap updated to Satellite imagery view. Displaying high-resolution satellite tiles on the map.';
+            responseAr = 'تم تغيير خريطة الأساس إلى عرض الصور الفضائية عالية الدقة على الخريطة.';
+            matchedFeats = [];
+            recsEn = ['Switch to Streets map', 'Switch to Light Canvas'];
+            recsAr = ['التبديل إلى خريطة الشوارع', 'التبديل إلى الخلفية الفاتحة'];
+          }
+          else if (isLightRequest && !lower.includes('hospital') && !lower.includes('school') && !lower.includes('park') && !lower.includes('center') && !lower.includes('rehab')) {
+            setActiveBasemap('light');
+            if (currentView !== 'map') setCurrentView('map');
+            responseEn = 'Basemap updated to Light Canvas view. Displaying clean high-contrast map tiles.';
+            responseAr = 'تم تغيير خريطة الأساس إلى عرض الخلفية الفاتحة عالية التباين على الخريطة.';
+            matchedFeats = [];
+            recsEn = ['Switch to Satellite view', 'Switch to Streets map'];
+            recsAr = ['التبديل إلى الصور الفضائية', 'التبديل إلى خريطة الشوارع'];
+          }
+          else if (isStreetsRequest && !lower.includes('hospital') && !lower.includes('school') && !lower.includes('park') && !lower.includes('center') && !lower.includes('rehab')) {
+            setActiveBasemap('streets');
+            if (currentView !== 'map') setCurrentView('map');
+            responseEn = 'Basemap updated to Streets standard vector map. Displaying standard street vector layers.';
+            responseAr = 'تم تغيير خريطة الأساس إلى خريطة الشوارع الموجهة القياسية.';
+            matchedFeats = [];
+            recsEn = ['Switch to Satellite view', 'Switch to Light Canvas'];
+            recsAr = ['التبديل إلى الصور الفضائية', 'التبديل إلى الخلفية الفاتحة'];
+          }
+          else if (isGenericBasemapRequest) {
+            setActiveTool('basemap');
+            if (currentView !== 'map') setCurrentView('map');
+            responseEn = 'Opening Basemap Gallery. Please select your preferred basemap layer below: Satellite, Light Canvas, or Streets.';
+            responseAr = 'جاري فتح معرض الخرائط الأساسية. اختر نمط الخريطة المفضلة لديك: الصور الفضائية، الخلفية الفاتحة، أو الشوارع.';
+            matchedFeats = [];
+            disambigOpts = [
+              { labelEn: 'Satellite Imagery', labelAr: 'الصور الفضائية', query: 'Switch to Satellite map' },
+              { labelEn: 'Light Canvas', labelAr: 'الخلفية الفاتحة', query: 'Switch to Light Canvas' },
+              { labelEn: 'Streets Vector Map', labelAr: 'خريطة الشوارع', query: 'Switch to Streets map' },
+            ];
+            recsEn = ['Switch to Satellite map', 'Switch to Light Canvas', 'Switch to Streets map'];
+            recsAr = ['التبديل إلى الصور الفضائية', 'التبديل إلى الخلفية الفاتحة', 'التبديل إلى خريطة الشوارع'];
+          }
+          else if (lower.includes('explore available data') || lower.includes('explore data') || query.includes('استكشاف البيانات المتاحة') || query.includes('استكشاف البيانات')) {
             setFilterDrawerOpen(true);
             if (currentView !== 'map') setCurrentView('map');
             responseEn = 'Opening Category Explorer to view all available SDI open datasets.';
@@ -657,13 +941,192 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
           }
 
           // -------------------------------------------------------------------------
-          // Section 7: AQI / AOI / Sketch Questions ("Analyze AQI around this area" / "Explore with AOI sketch")
+          // Section 7: Drawn Shape & Spatial AOI Analysis (Point, Circle, Rect, Polygon)
           // -------------------------------------------------------------------------
+          else if (
+            lower.includes('drawn') ||
+            lower.includes('point marker') ||
+            lower.includes('circle buffer') ||
+            lower.includes('rectangle box') ||
+            lower.includes('polygon boundary') ||
+            lower.includes('rectangle bounding box')
+          ) {
+            const lastShape = userDrawnShapes.length > 0 ? userDrawnShapes[userDrawnShapes.length - 1] : null;
+            let centerLat = lastShape?.lat || mapCenter[0];
+            let centerLng = lastShape?.lng || mapCenter[1];
+
+            // Extract exact coordinates from query string if present (e.g. "at 24.474°N, 54.377°E")
+            const latMatch = query.match(/(-?\d+\.\d+)°N/i) || query.match(/lat[:\s]*(-?\d+\.\d+)/i);
+            const lngMatch = query.match(/(-?\d+\.\d+)°E/i) || query.match(/lng[:\s]*(-?\d+\.\d+)/i);
+            if (latMatch && lngMatch) {
+              centerLat = parseFloat(latMatch[1]);
+              centerLng = parseFloat(lngMatch[1]);
+            }
+
+            const isCircle = lower.includes('circle');
+            const isPoint = lower.includes('point');
+            const isRect = lower.includes('rectangle') || lower.includes('rect') || lower.includes('box');
+
+            const shapeLabel = isCircle ? 'Circle Buffer' : isPoint ? 'Point Marker Location' : isRect ? 'Rectangle Bounding Box' : 'Polygon Boundary AOI';
+            const shapeLabelAr = isCircle ? 'نطاق دائري' : isPoint ? 'موقع نقطي' : isRect ? 'مربع محيط' : 'حدود مضلع';
+
+            const radMatch = query.match(/\(([\d\.]+)\s*km\s*radius\)/i);
+            let maxDistKm = isPoint ? 1.5 : isCircle ? (radMatch ? parseFloat(radMatch[1]) : (lastShape?.radius ? lastShape.radius / 1000 : 2.5)) : isRect ? 3.0 : 3.5;
+            if (maxDistKm <= 0) maxDistKm = 1.5;
+
+            const calculateDist = (l1: number, n1: number, l2: number, n2: number) => {
+              const R = 6371;
+              const dLat = ((l2 - l1) * Math.PI) / 180;
+              const dLon = ((n2 - n1) * Math.PI) / 180;
+              const a =
+                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos((l1 * Math.PI) / 180) *
+                  Math.cos((l2 * Math.PI) / 180) *
+                  Math.sin(dLon / 2) *
+                  Math.sin(dLon / 2);
+              const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+              return R * c;
+            };
+
+            const inAreaFeatures = GEO_FEATURES.filter(f => {
+              const d = calculateDist(centerLat, centerLng, f.lat, f.lng);
+              return d <= maxDistKm;
+            });
+
+            newCenter = [centerLat, centerLng];
+            newZoom = isPoint ? 16 : isCircle ? 15 : 14;
+
+            if (inAreaFeatures.length > 0) {
+              const healthCount = inAreaFeatures.filter(f => f.category === 'healthcare').length;
+              const eduCount = inAreaFeatures.filter(f => f.category === 'education').length;
+              const parkCount = inAreaFeatures.filter(f => f.category === 'parks').length;
+              const govCount = inAreaFeatures.filter(f => f.category === 'government' || f.category === 'transport' || f.category === 'utilities').length;
+
+              let breakdownTextEn = '';
+              if (healthCount > 0) breakdownTextEn += `• ${healthCount} Healthcare Facilities\n`;
+              if (eduCount > 0) breakdownTextEn += `• ${eduCount} Educational Facilities\n`;
+              if (parkCount > 0) breakdownTextEn += `• ${parkCount} Parks & Green Spaces\n`;
+              if (govCount > 0) breakdownTextEn += `• ${govCount} Government & Public Facilities`;
+
+              let breakdownTextAr = '';
+              if (healthCount > 0) breakdownTextAr += `• ${healthCount} مرافق صحية\n`;
+              if (eduCount > 0) breakdownTextAr += `• ${eduCount} منشآت تعليمية\n`;
+              if (parkCount > 0) breakdownTextAr += `• ${parkCount} حدائق ومساحات خضراء\n`;
+              if (govCount > 0) breakdownTextAr += `• ${govCount} مراكز خدمات حكومية`;
+
+              responseEn = `Spatial Area Analysis Complete for drawn ${shapeLabel} at ${centerLat.toFixed(3)}°N, ${centerLng.toFixed(3)}°E.\n\nWithin this drawn area (${maxDistKm.toFixed(1)} km radius), GeoVision identified ${inAreaFeatures.length} matching GIS features:\n${breakdownTextEn}`;
+              responseAr = `اكتمل التحليل المكاني لـ ${shapeLabelAr} المرسوم في ${centerLat.toFixed(3)}°N, ${centerLng.toFixed(3)}°E.\n\nضمن هذه المنطقة المحددة (نطاق ${maxDistKm.toFixed(1)} كم)، حدد GeoVision ${inAreaFeatures.length} معلماً جغرافياً متاحاً:\n${breakdownTextAr}`;
+
+              matchedFeats = inAreaFeatures;
+              const activeCats = Array.from(new Set(inAreaFeatures.map(f => f.category)));
+              setSelectedCategoryIds(activeCats);
+
+              recsEn = [
+                'Show only hospitals in this drawn AOI',
+                'Show schools inside drawn boundary',
+                'Create 2 km buffer around drawn zone',
+              ];
+              recsAr = [
+                'عرض المستشفيات فقط في هذه المنطقة المرسومة',
+                'عرض المدارس داخل الحدود المرسومة',
+                'إنشاء نطاق 2 كم حول المنطقة المرسومة',
+              ];
+            } else {
+              responseEn = `No GIS spatial features were found inside the drawn ${shapeLabel} area at ${centerLat.toFixed(3)}°N, ${centerLng.toFixed(3)}°E (${maxDistKm.toFixed(1)} km radius).\n\nTry drawing your AOI shape closer to populated urban hubs such as Khalifa City, Yas Island, or Abu Dhabi Center.`;
+              responseAr = `لم يتم العثور على أي معالم جغرافية داخل منطقة ${shapeLabelAr} المرسومة في ${centerLat.toFixed(3)}°N, ${centerLng.toFixed(3)}°E.\n\nجرّب الرسم بالقرب من المناطق الحضرية المأهولة مثل مدينة خليفة، جزيرة ياس، أو وسط أبوظبي.`;
+
+              matchedFeats = [];
+              noResSuggs = [
+                { labelEn: 'Show schools in Zayed city within 5km', labelAr: 'عرض المدارس في مدينة زايد ضمن 5 كم', query: 'show schools in Zayed city within 5km' },
+                { labelEn: 'parks near yas', labelAr: 'حدائق بالقرب من ياس', query: 'parks near yas' },
+                { labelEn: 'Show hospitals in Abu Dhabi', labelAr: 'عرض المستشفيات في أبوظبي', query: 'Show hospitals in Abu Dhabi' },
+              ];
+              recsEn = [];
+              recsAr = [];
+            }
+          }
+          // -------------------------------------------------------------------------
+          // Section 7.2: Specific Drawing Tool Activation & Shape Selection
+          // -------------------------------------------------------------------------
+          else if (
+            lower === 'point' ||
+            lower.includes('point pin') ||
+            lower.includes('point tool') ||
+            lower.includes('drop point') ||
+            lower.includes('point marker') ||
+            lower.includes('draw point') ||
+            query.includes('نقطة') ||
+            query.includes('دبوس')
+          ) {
+            setActiveTool('sketch');
+            setDrawTool('point');
+            if (currentView !== 'map') setCurrentView('map');
+            matchedFeats = [];
+            responseEn = "Activating Point Pin drawing tool. Click anywhere on the map to drop a point pin for spatial analysis.";
+            responseAr = "جاري تفعيل أداة دبابيس النقاط. انقر في أي مكان على الخريطة لإسقاط نقطة للتحليل المكانية.";
+            recsEn = ['Draw circle buffer', 'Draw rectangle box', 'Draw polygon AOI'];
+            recsAr = ['رسم نطاق دائري', 'رسم مربع محيط', 'رسم مضلع جغرافي'];
+          }
+          else if (
+            lower === 'circle' ||
+            lower.includes('circle buffer') ||
+            lower.includes('circle tool') ||
+            lower.includes('draw circle') ||
+            lower.includes('radius tool') ||
+            query.includes('دائرة') ||
+            query.includes('نطاق دائري')
+          ) {
+            setActiveTool('sketch');
+            setDrawTool('circle');
+            if (currentView !== 'map') setCurrentView('map');
+            matchedFeats = [];
+            responseEn = "Activating Circle Buffer drawing tool. Click center point on map and move cursor to adjust circle radius.";
+            responseAr = "جاري تفعيل أداة النطاق الدائري. انقر لتحديد مركز الدائرة وحرّك الماوس لضبط القطر.";
+            recsEn = ['Drop point pin', 'Draw rectangle box', 'Draw polygon AOI'];
+            recsAr = ['إسقاط نقطة', 'رسم مربع محيط', 'رسم مضلع جغرافي'];
+          }
+          else if (
+            lower === 'rect' ||
+            lower === 'rectangle' ||
+            lower.includes('rectangle box') ||
+            lower.includes('rectangle tool') ||
+            lower.includes('bounding box') ||
+            lower.includes('draw rectangle') ||
+            query.includes('مستطيل') ||
+            query.includes('مربع')
+          ) {
+            setActiveTool('sketch');
+            setDrawTool('rect');
+            if (currentView !== 'map') setCurrentView('map');
+            matchedFeats = [];
+            responseEn = "Activating Rectangle Bounding Box drawing tool. Click start corner on map and expand box to lock target zone.";
+            responseAr = "جاري تفعيل أداة المربع والمستطيل. انقر لتحديد الزاوية الأولى وحرّك الماوس لرسم المستطيل.";
+            recsEn = ['Drop point pin', 'Draw circle buffer', 'Draw polygon AOI'];
+            recsAr = ['إسقاط نقطة', 'رسم نطاق دائري', 'رسم مضلع جغرافي'];
+          }
+          else if (
+            lower === 'polygon' ||
+            lower.includes('polygon tool') ||
+            lower.includes('polygon boundary') ||
+            lower.includes('draw polygon') ||
+            lower.includes('freehand') ||
+            query.includes('مضلع')
+          ) {
+            setActiveTool('sketch');
+            setDrawTool('polygon');
+            if (currentView !== 'map') setCurrentView('map');
+            matchedFeats = [];
+            responseEn = "Activating Polygon Boundary drawing tool. Click points on map to add vertices and double-click to complete boundary.";
+            responseAr = "جاري تفعيل أداة رسم المضلعات. انقر على الخريطة لإضافة النقاط وانقر مرتين لإكمال الحدود.";
+            recsEn = ['Drop point pin', 'Draw circle buffer', 'Draw rectangle box'];
+            recsAr = ['إسقاط نقطة', 'رسم نطاق دائري', 'رسم مربع محيط'];
+          }
           else if (lower.includes('sketch') || lower.includes('aoi') || lower.includes('aqi') || lower.includes('draw') || lower.includes('check this zone') || lower.includes('analyze this area') || lower.includes('analyze selected area')) {
-            responseEn = "Activating interactive Sketch & AOI drawing tool. Please select a shape (Polygon, Rectangle, Circle, or Freehand) to draw your target area on the map.";
-            responseAr = "جاري تفعيل أداة رسم المساحة والتغطية المكانية (AOI). يرجى تحديد الشكل (مضلع، مربع، دائرة، أو رسم حر) لرسم المنطقة المطلوبة على الخريطة.";
+            responseEn = "Activating interactive Sketch & AOI drawing tool. Please select a shape (Polygon, Rectangle, Circle, or Point Pin) to draw your target area on the map.";
+            responseAr = "جاري تفعيل أداة رسم المساحة والتغطية المكانية (AOI). يرجى تحديد الشكل (مضلع، مربع، دائرة، أو دبوس نقطي) لرسم المنطقة المطلوبة على الخريطة.";
             setActiveTool('sketch');
             if (currentView !== 'map') setCurrentView('map');
+            matchedFeats = [];
             if (lower.includes('yas')) {
               newCenter = [24.4891, 54.6082];
               newZoom = 14;
@@ -1012,92 +1475,6 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
             responseAr = `تم الاحتفاظ بالسياق: جاري عرض قائمة النتائج لـ ${matchedFeats.length} معلماً جغرافياً مطابقاً.`;
             isExplicitListRequest = true;
           }
-          else if (lower.includes('drawn') || lower.includes('sketch') || lower.includes('aoi') || lower.includes('polygon') || lower.includes('circle buffer') || lower.includes('point marker') || lower.includes('rectangle box')) {
-            // Retrieve last drawn shape center or default to current map center
-            const lastShape = userDrawnShapes.length > 0 ? userDrawnShapes[userDrawnShapes.length - 1] : null;
-            let centerLat = lastShape?.lat || mapCenter[0];
-            let centerLng = lastShape?.lng || mapCenter[1];
-
-            const isCircle = lower.includes('circle');
-            const isPoint = lower.includes('point');
-            const isRect = lower.includes('rectangle') || lower.includes('rect') || lower.includes('box');
-            
-            const shapeLabel = isCircle ? 'Circle Buffer (2 km)' : isPoint ? 'Point Marker Location' : isRect ? 'Rectangle Bounding Box' : 'Polygon Boundary AOI';
-            const shapeLabelAr = isCircle ? 'نطاق دائرية (2 كم)' : isPoint ? 'موقع نقطي' : isRect ? 'مربع محيط' : 'حدود مضلع';
-
-            const maxDistKm = isPoint ? 1.5 : isCircle ? 2.5 : isRect ? 3.0 : 3.5;
-
-            const calculateDist = (l1: number, n1: number, l2: number, n2: number) => {
-              const R = 6371;
-              const dLat = ((l2 - l1) * Math.PI) / 180;
-              const dLon = ((n2 - n1) * Math.PI) / 180;
-              const a =
-                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos((l1 * Math.PI) / 180) *
-                  Math.cos((l2 * Math.PI) / 180) *
-                  Math.sin(dLon / 2) *
-                  Math.sin(dLon / 2);
-              const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-              return R * c;
-            };
-
-            const inAreaFeatures = GEO_FEATURES.filter(f => {
-              const d = calculateDist(centerLat, centerLng, f.lat, f.lng);
-              return d <= maxDistKm;
-            });
-
-            newCenter = [centerLat, centerLng];
-            newZoom = isPoint ? 16 : isCircle ? 15 : 14;
-
-            if (inAreaFeatures.length > 0) {
-              const healthCount = inAreaFeatures.filter(f => f.category === 'healthcare').length;
-              const eduCount = inAreaFeatures.filter(f => f.category === 'education').length;
-              const parkCount = inAreaFeatures.filter(f => f.category === 'parks').length;
-              const govCount = inAreaFeatures.filter(f => f.category === 'government' || f.category === 'transport' || f.category === 'utilities').length;
-
-              let breakdownTextEn = '';
-              if (healthCount > 0) breakdownTextEn += `• ${healthCount} Healthcare Facilities\n`;
-              if (eduCount > 0) breakdownTextEn += `• ${eduCount} Educational Facilities\n`;
-              if (parkCount > 0) breakdownTextEn += `• ${parkCount} Parks & Green Spaces\n`;
-              if (govCount > 0) breakdownTextEn += `• ${govCount} Government & Public Facilities`;
-
-              let breakdownTextAr = '';
-              if (healthCount > 0) breakdownTextAr += `• ${healthCount} مرافق صحية\n`;
-              if (eduCount > 0) breakdownTextAr += `• ${eduCount} منشآت تعليمية\n`;
-              if (parkCount > 0) breakdownTextAr += `• ${parkCount} حدائق ومساحات خضراء\n`;
-              if (govCount > 0) breakdownTextAr += `• ${govCount} مراكز خدمات حكومية`;
-
-              responseEn = `Spatial Area Analysis Complete for drawn ${shapeLabel}.\n\nWithin this drawn area, GeoVision identified ${inAreaFeatures.length} matching GIS features:\n${breakdownTextEn}`;
-              responseAr = `اكتمل التحليل المكاني لـ ${shapeLabelAr} المرسوم.\n\nضمن هذه المنطقة المحددة، حدد GeoVision ${inAreaFeatures.length} معلماً جغرافياً متاحاً:\n${breakdownTextAr}`;
-
-              matchedFeats = inAreaFeatures;
-              const activeCats = Array.from(new Set(inAreaFeatures.map(f => f.category)));
-              setSelectedCategoryIds(activeCats);
-
-              recsEn = [
-                'Show only hospitals in this drawn AOI',
-                'Show schools inside drawn boundary',
-                'Create 2 km buffer around drawn zone',
-              ];
-              recsAr = [
-                'عرض المستشفيات فقط في هذه المنطقة المرسومة',
-                'عرض المدارس داخل الحدود المرسومة',
-                'إنشاء نطاق 2 كم حول المنطقة المرسومة',
-              ];
-            } else {
-              responseEn = `No GIS spatial features were found inside the drawn ${shapeLabel} area.\n\nTry drawing your AOI shape closer to urban hubs such as Khalifa City, Yas Island, or Abu Dhabi Center.`;
-              responseAr = `لم يتم العثور على أي معالم جغرافية داخل منطقة ${shapeLabelAr} المرسومة.\n\nجرّب الرسم بالقرب من المناطق الحضرية مثل مدينة خليفة، جزيرة ياس، أو وسط أبوظبي.`;
-
-              matchedFeats = [];
-              noResSuggs = [
-                { labelEn: 'Show schools in Zayed city within 5km', labelAr: 'عرض المدارس في مدينة زايد ضمن 5 كم', query: 'show schools in Zayed city within 5km' },
-                { labelEn: 'parks near yas', labelAr: 'حدائق بالقرب من ياس', query: 'parks near yas' },
-                { labelEn: 'Show hospitals in Abu Dhabi', labelAr: 'عرض المستشفيات في أبوظبي', query: 'Show hospitals in Abu Dhabi' },
-              ];
-              recsEn = [];
-              recsAr = [];
-            }
-          }
           else if (lower.includes('park') || lower.includes('recreation') || query.includes('حدائق')) {
             responseEn = 'Displayed public parks and green leisure zones across Abu Dhabi including Khalifa Park, Reem Central Park, and Umm Al Emarat Park.';
             responseAr = 'تم عرض الحدائق العامة والمساحات الخضراء في أبوظبي بما في ذلك حديقة الريم سنترال وحديقة أم الإمارات.';
@@ -1108,9 +1485,9 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
             recsAr = ['البحث عن محطات الحافلات القريبة', 'تصفية حسب مفتوح 24 ساعة'];
             setSelectedCategoryIds(['parks']);
           } else {
-            responseEn = `GeoVision interpreted your request for "${query}". Displaying matching Abu Dhabi geospatial data points.`;
-            responseAr = `قام GeoVision بتحليل طلبك المكانية المتعلق بـ "${query}". جاري عرض النقاط الجغرافية المطابقة.`;
-            matchedFeats = GEO_FEATURES;
+            responseEn = `GeoVision interpreted your request for "${query}". Please select a category (Healthcare, Education, Parks, Government) or choose a drawing tool to inspect an area on the map.`;
+            responseAr = `قام GeoVision بتحليل طلبك المتعلق بـ "${query}". يرجى تحديد فئة بيانات أو اختيار أداة رسم للتحليل على الخريطة.`;
+            matchedFeats = [];
             recsEn = ['Show hospitals in Abu Dhabi', 'parks near yas', 'show schools in Zayed city within 5km'];
             recsAr = ['عرض المستشفيات في أبوظبي', 'حدائق بالقرب من ياس', 'عرض المدارس في مدينة زايد ضمن 5 كم'];
           }
@@ -1144,6 +1521,12 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
           
           if (bufferRadiusKm > 0) {
             activeFilterChips.push({ labelEn: `${bufferRadiusKm} km radius`, labelAr: `نطاق ${bufferRadiusKm} كم`, key: 'radius' });
+          }
+
+          if (isSatelliteRequest || isLightRequest || isStreetsRequest) {
+            const bmNameEn = isSatelliteRequest ? 'Satellite Imagery' : isLightRequest ? 'Light Canvas' : 'Streets';
+            const bmNameAr = isSatelliteRequest ? 'الصور الفضائية' : isLightRequest ? 'الخلفية الفاتحة' : 'خريطة الشوارع';
+            activeFilterChips.push({ labelEn: `Basemap: ${bmNameEn}`, labelAr: `خريطة الأساس: ${bmNameAr}`, key: 'basemap', isUpdated: true });
           }
 
           if (activeFilterChips.length > 0) {

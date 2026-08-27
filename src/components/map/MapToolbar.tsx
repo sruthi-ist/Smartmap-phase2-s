@@ -24,6 +24,10 @@ export const MapToolbar: React.FC = () => {
     setMapCenterAndZoom,
     showToast,
     language,
+    selectedFeature,
+    setSelectedFeature,
+    filteredFeatures,
+    GEO_FEATURES,
   } = useAppState();
 
   const handleExploreToggle = () => {
@@ -72,12 +76,25 @@ export const MapToolbar: React.FC = () => {
   };
 
   const handleCompassClick = () => {
-    showToast(language === 'ar' ? 'تم توجيه الخريطة إلى الشمال' : 'Map orientation set to North (0°)');
+    setMapCenterAndZoom(mapCenter, mapZoom);
+    showToast(language === 'ar' ? 'تم توجيه الخريطة إلى الشمال (0°)' : 'Map orientation set to North (0°)');
   };
 
   const handleSelectToggle = () => {
     setFilterDrawerOpen(false);
-    setActiveTool(activeTool === 'identify' ? 'none' : 'identify');
+    const nextTool = activeTool === 'identify' ? 'none' : 'identify';
+    setActiveTool(nextTool);
+    if (nextTool === 'identify') {
+      const featToSelect = selectedFeature || (filteredFeatures.length > 0 ? filteredFeatures[0] : GEO_FEATURES[0]);
+      if (featToSelect) {
+        setSelectedFeature(featToSelect);
+      }
+      showToast(
+        language === 'ar'
+          ? 'أداة التحديد نشطة: انقر على أي معلم في الخريطة لمعاينة التفاصيل'
+          : 'Select Tool active: Click any feature marker on map to inspect details'
+      );
+    }
   };
 
   // High-Contrast Vivid Solid Blue Active Highlight
