@@ -9,7 +9,6 @@ import {
   MapPin,
   Flame,
   Activity,
-  CheckCircle2,
   X,
 } from 'lucide-react';
 import { VoiceSearchOverlay } from './VoiceSearchOverlay';
@@ -69,13 +68,6 @@ export const AISearchBar: React.FC<AISearchBarProps> = ({ compact = false }) => 
     const text = t(promptKey);
     sendAIMessage(text);
     setAutocompleteOpen(false);
-  };
-
-  const handleAppendTag = (tagText: string) => {
-    setQueryText(prev => {
-      const trimmed = prev.trim();
-      return trimmed ? `${trimmed} in ${tagText}` : tagText;
-    });
   };
 
   const autocompleteSuggestions = [

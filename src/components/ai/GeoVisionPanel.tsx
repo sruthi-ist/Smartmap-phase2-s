@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAppState } from '../../context/AppStateContext';
-import { AIMessageSearchResults } from './AIMessageSearchResults';
 import {
   Sparkles,
   Send,
@@ -8,20 +7,13 @@ import {
   User,
   Bot,
   X,
-  ShieldCheck,
   ChevronRight,
-  MapPin,
-  Compass,
-  Info,
-  Building,
   RotateCcw,
   Plus,
   Mic,
-  List,
   BarChart2,
   AlertTriangle,
 } from 'lucide-react';
-import type { GeoFeature } from '../../types';
 
 interface GeoVisionPanelProps {
   onClose?: () => void;
@@ -31,25 +23,17 @@ export const GeoVisionPanel: React.FC<GeoVisionPanelProps> = ({ onClose }) => {
   const {
     language,
     aiMessages,
-    setAiMessages,
     sendAIMessage,
     aiProcessing,
     aiStepState,
-    setSelectedFeature,
     selectedCategoryIds,
-    setSelectedCategoryIds,
     selectedSubcategoryIds,
     smartFilters,
     resetConversationContext,
     startNewConversation,
     user,
-    currentView,
     setCurrentView,
-    setFilterDrawerOpen,
-    setActiveTool,
     setGuestPromptOpen,
-    setMapCenterAndZoom,
-    setBufferRadiusKm,
     showToast,
     t,
   } = useAppState();
@@ -160,7 +144,6 @@ export const GeoVisionPanel: React.FC<GeoVisionPanelProps> = ({ onClose }) => {
     if (inputVal.trim()) {
       sendAIMessage(inputVal);
       setInputVal('');
-      setQueryBuilderOpen(false);
     }
   };
 
