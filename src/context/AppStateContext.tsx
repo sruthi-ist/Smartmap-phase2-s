@@ -591,6 +591,8 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
           let detFeat: GeoFeature | undefined;
           let showPrivList = false;
           let isExplicitListRequest = false;
+          let comparisonChartData: AIMessage['comparisonData'] | undefined;
+          let riskBreakdownData: AIMessage['riskBreakdownData'] | undefined;
 
           // Intelligent NLU Map Navigation Intent Detection
           const isZoomInRequest =
@@ -880,8 +882,470 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
           }
 
           // -------------------------------------------------------------------------
-          // Flow Option 1: "Show hospitals in Khalifa City"
+          // High-Risk Manufacturing Facilities in Abu Dhabi
           // -------------------------------------------------------------------------
+          else if (
+            lower.includes('high-risk manufacturing') ||
+            lower.includes('high risk manufacturing') ||
+            lower.includes('manufacturing facilities') ||
+            lower.includes('high risk facilities') ||
+            lower.includes('high-risk facilities') ||
+            lower.includes('manufacturing in abu dhabi') ||
+            lower.includes('industrial facilities in abu dhabi') ||
+            query.includes('صناعية عالية الخطورة') ||
+            query.includes('منشآت صناعية') ||
+            query.includes('التصنيع عالية المخاطر') ||
+            query.includes('المصانع عالية الخطورة')
+          ) {
+            const mfgFeats = GEO_FEATURES.filter(f => f.subcategory === 'manufacturing' || f.category === 'utilities');
+            matchedFeats = mfgFeats.filter(f => f.metadata && String(f.metadata['Risk Level'] || '').toLowerCase().includes('high'));
+            if (matchedFeats.length === 0) matchedFeats = mfgFeats.slice(0, 5);
+
+            responseEn = `Identified ${matchedFeats.length} High-Risk Manufacturing & Heavy Industrial Facilities across Abu Dhabi (Mussafah ICAD & KIZAD Industrial Zones).\n\nThese facilities are classified as High-Risk based on Environment Agency - Abu Dhabi (EAD) criteria: continuous atmospheric stack emissions (CO₂, SO₂, NOx), Tier-2 toxic chemical storage, and proximity to coastal buffer zones.`;
+            responseAr = `تم تحديد ${matchedFeats.length} منشآت تصنيع وصناعات ثقيلة عالية الخطورة في إمارة أبوظبي (منطقتي مصفح الصناعية ICAD وكيزاد).\n\nتم تصنيف هذه المنشآت كعالية الخطورة وفق معايير هيئة البيئة - أبوظبي (EAD) نظراً لحجم الانبعاثات الجوية المستمرة، وتخزين المواد الكيميائية الخطرة، وقربها من النطاقات الساحلية.`;
+
+            newCenter = [24.5400, 54.5900];
+            newZoom = 11;
+            setBufferRadiusKm(0);
+            setSelectedCategoryIds(['utilities']);
+
+            recsEn = [
+              'Compare emissions between Mussafah and KIZAD',
+              'Why is this facility high risk?',
+              'Show air quality monitoring stations in Mussafah',
+              'Filter by SO₂ emission thresholds',
+            ];
+            recsAr = [
+              'مقارنة الانبعاثات بين مصفح وكيزاد',
+              'لماذا هذه المنشأة عالية الخطورة؟',
+              'عرض محطات رصد جودة الهواء في مصفح',
+              'تصفية حسب عتبات انبعاثات ثاني أكسيد الكبريت',
+            ];
+          }
+
+          // -------------------------------------------------------------------------
+          // Compare Emissions between Mussafah and KIZAD
+          // -------------------------------------------------------------------------
+          else if (
+            lower.includes('compare emissions') ||
+            lower.includes('emissions between mussafah and kizad') ||
+            lower.includes('emissions between musaffah and kizad') ||
+            (lower.includes('mussafah') && lower.includes('kizad')) ||
+            (lower.includes('musaffah') && lower.includes('kizad')) ||
+            query.includes('مقارنة الانبعاثات') ||
+            (query.includes('مصفح') && query.includes('كيزاد'))
+          ) {
+            const mfgFeats = GEO_FEATURES.filter(f => f.subcategory === 'manufacturing' || f.category === 'utilities');
+            matchedFeats = mfgFeats;
+
+            responseEn = `Spatial Emissions Analysis: Comparing Mussafah (ICAD) vs. KIZAD (Khalifa Industrial Zone Abu Dhabi).\n\n• Mussafah shows higher particulate density (PM2.5 / PM10) due to mixed fabrication and dense logistics traffic.\n• KIZAD exhibits higher point-source industrial CO₂ & SO₂ from primary smelting (EGA), but operates with modern automated scrubbing systems (93% EAD compliance).`;
+            responseAr = `التحليل المكاني للانبعاثات: مقارنة بين منطقة مصفح (ICAD) ومنطقة كيزاد (مدينة خليفة الصناعية).\n\n• تسجل مصفح كثافة أعلى في الجسيمات العالقة (PM2.5) بسبب تنوع الأنشطة الصناعية وحركة النقل الكثيفة.\n• تسجل كيزاد انبعاثات مركزة أعلى من المصاهر الكبرى (مثل مصهر EGA)، لكنها تتميز بأنظمة تنقية حديثة (نسبة امتثال بيئي 93%).`;
+
+            newCenter = [24.5400, 54.5900];
+            newZoom = 11;
+            setSelectedCategoryIds(['utilities']);
+
+            comparisonChartData = {
+              titleEn: 'Industrial Emissions & Air Quality Comparison',
+              titleAr: 'مقارنة الانبعاثات الصناعية وجودة الهواء',
+              subtitleEn: 'EAD Continuous Environmental Monitoring Grid (2025-2026)',
+              subtitleAr: 'شبكة الرصد البيئي المستمر لهيئة البيئة - أبوظبي',
+              entityA: {
+                nameEn: 'Mussafah (ICAD)',
+                nameAr: 'مصفح (ICAD)',
+                totalEmissions: '3.8 Mt/yr',
+                badge: 'Urban Industrial',
+              },
+              entityB: {
+                nameEn: 'KIZAD',
+                nameAr: 'كيزاد (KIZAD)',
+                totalEmissions: '5.2 Mt/yr',
+                badge: 'Deepwater Port Hub',
+              },
+              metrics: [
+                {
+                  labelEn: 'Total Annual GHG Emissions (CO₂ eq)',
+                  labelAr: 'إجمالي انبعاثات الغازات الدفيئة (CO₂)',
+                  valA: '3.8 Mt/yr',
+                  valB: '5.2 Mt/yr',
+                  percentA: 42,
+                  percentB: 58,
+                  unit: 'Mt/yr',
+                },
+                {
+                  labelEn: 'PM2.5 Ambient Particulate Concentration',
+                  labelAr: 'تركيز الجسيمات الدقيقة PM2.5',
+                  valA: '68 µg/m³',
+                  valB: '44 µg/m³',
+                  percentA: 61,
+                  percentB: 39,
+                  unit: 'µg/m³',
+                },
+                {
+                  labelEn: 'Annual SO₂ & NOx Flue Discharge',
+                  labelAr: 'انبعاثات أكاسيد النيتروجين والكبريت',
+                  valA: '280 t/yr',
+                  valB: '410 t/yr',
+                  percentA: 40,
+                  percentB: 60,
+                  unit: 't/yr',
+                },
+                {
+                  labelEn: 'EAD Environmental Compliance Rate',
+                  labelAr: 'معدل الامتثال لمعايير هيئة البيئة',
+                  valA: '84%',
+                  valB: '93%',
+                  percentA: 47,
+                  percentB: 53,
+                  unit: '%',
+                },
+              ],
+              takeawayEn: 'Key Takeaway: KIZAD has higher industrial point-source volume, while Mussafah requires particulate buffers due to proximity to residential sectors.',
+              takeawayAr: 'الخلاصة: تسجل كيزاد حجماً أعلى من الانبعاثات النقطية، بينما تحتاج مصفح إلى أحزمة عازلة للغبار لقربها من المناطق السكنية.',
+            };
+
+            recsEn = [
+              'Show high-risk manufacturing facilities in Abu Dhabi',
+              'Why is this facility high risk?',
+              'Show air quality monitoring stations in Mussafah',
+              'Download EAD emissions spatial report',
+            ];
+            recsAr = [
+              'عرض المنشآت الصناعية عالية الخطورة في أبوظبي',
+              'لماذا هذه المنشأة عالية الخطورة؟',
+              'عرض محطات رصد جودة الهواء في مصفح',
+              'تحميل تقرير الانبعاثات المكاني',
+            ];
+          }
+
+          // -------------------------------------------------------------------------
+          // Why is this facility high risk?
+          // -------------------------------------------------------------------------
+          else if (
+            lower.includes('why is this facility high risk') ||
+            lower.includes('why is this facility high-risk') ||
+            lower.includes('why high risk') ||
+            lower.includes('why this facility is high risk') ||
+            lower.includes('why is it high risk') ||
+            lower.includes('facility high risk reason') ||
+            lower.includes('risk score breakdown') ||
+            query.includes('لماذا هذه المنشأة عالية الخطورة') ||
+            query.includes('سبب تصنيف الخطورة') ||
+            query.includes('عالية الخطورة')
+          ) {
+            // Identify target facility from user query, current selection, or top high-risk default
+            let targetFeat = selectedFeature;
+            if (!targetFeat || !targetFeat.metadata || !targetFeat.metadata['Risk Level']) {
+              if (lower.includes('steel') || lower.includes('arkan') || query.includes('حديد الإمارات')) {
+                targetFeat = GEO_FEATURES.find(f => f.id === 'feat-mfg-1') || GEO_FEATURES[0];
+              } else if (lower.includes('polymer') || lower.includes('borouge') || query.includes('بروج')) {
+                targetFeat = GEO_FEATURES.find(f => f.id === 'feat-mfg-3') || GEO_FEATURES[0];
+              } else if (lower.includes('chemical') || lower.includes('solvent') || query.includes('كيماويات')) {
+                targetFeat = GEO_FEATURES.find(f => f.id === 'feat-mfg-4') || GEO_FEATURES[0];
+              } else if (lower.includes('galvanizing') || lower.includes('metallurgy') || query.includes('جلفنة')) {
+                targetFeat = GEO_FEATURES.find(f => f.id === 'feat-mfg-5') || GEO_FEATURES[0];
+              } else {
+                targetFeat = GEO_FEATURES.find(f => f.id === 'feat-mfg-2') || GEO_FEATURES.find(f => f.id === 'feat-mfg-1') || GEO_FEATURES[0];
+              }
+            }
+
+            // Accurate, tailored multi-factor evaluation profile per facility
+            let overallScore = 92;
+            let reasonEn = 'Continuous large-scale electrolytic aluminium smelting generating 3.2 Mt CO₂ eq/year and 290 t/yr SO₂/fluorides, combined with thermal cooling water discharge near coastal habitat buffer.';
+            let reasonAr = 'عمليات صهر واختزال الألمنيوم الكبرى المستمرة التي تولد 3.2 مليون طن CO₂ سنوياً و290 طن/سنة من ثاني أكسيد الكبريت والفلورايد، مع تصريف مياه التبريد الحرارية قرب الساحل.';
+            let factors: any[] = [];
+            let compliance = {
+              authorityEn: 'Regulated by Environment Agency - Abu Dhabi (EAD)',
+              authorityAr: 'مرخص وخاضع لرقابة هيئة البيئة - أبوظبي',
+              cemsStatusEn: '12 Live CEMS Sensors Online',
+              cemsStatusAr: '12 مجس رصد مستمر متصل بالبث المباشر',
+              auditDate: 'Q3 2026',
+            };
+
+            if (targetFeat.id === 'feat-mfg-1' || targetFeat.nameEn.toLowerCase().includes('steel')) {
+              overallScore = 88;
+              reasonEn = 'Direct Reduced Iron (DRI) processing and electric arc furnace operations generating 1.8 Mt CO₂ eq/yr with high heavy metal particulate dust in ICAD I.';
+              reasonAr = 'عمليات اختزال الحديد المباشر (DRI) وأفران القوس الكهربائي التي تولد 1.8 مليون طن CO₂ سنوياً مع كثافة غبار المعادن الثقيلة في مصفح ICAD I.';
+              factors = [
+                {
+                  categoryEn: 'Direct Reduced Iron & Furnace Stack Emissions',
+                  categoryAr: 'انبعاثات اختزال الحديد وأفران الصهر',
+                  score: 89,
+                  weight: '35% Weight',
+                  detailEn: '1.8 Mt CO₂ eq/yr continuous emissions from DRI and reheat furnaces.',
+                  detailAr: '1.8 مليون طن CO₂ سنوياً انبعاثات مستمرة من أفران الاختزال وإعادة التسخين.',
+                  status: 'critical',
+                },
+                {
+                  categoryEn: 'Electric Arc Furnace Baghouse Dust',
+                  categoryAr: 'غبار أفران القوس الكهربائي والمعادن الثقيلة',
+                  score: 91,
+                  weight: '25% Weight',
+                  detailEn: 'Heavy metal particulate capture requires continuous filter maintenance.',
+                  detailAr: 'احتجاز جسيمات المعادن الثقيلة يتطلب صيانة مستمرة للفلاتر النسيجية.',
+                  status: 'critical',
+                },
+                {
+                  categoryEn: 'Urban Corridor & Industrial Logistics',
+                  categoryAr: 'القرب من الممرات الحضرية والنقل الثقيل',
+                  score: 84,
+                  weight: '20% Weight',
+                  detailEn: 'Heavy scrap and steel freight movement along Mussafah arterial routes.',
+                  detailAr: 'حركة نقل الخردة والمنتجات الثقيلة عبر الطرق الشريانية في مصفح.',
+                  status: 'warning',
+                },
+                {
+                  categoryEn: 'Continuous Grid Power Load',
+                  categoryAr: 'كثافة استهلاك الطاقة الكهربائية',
+                  score: 86,
+                  weight: '20% Weight',
+                  detailEn: 'High-megawatt continuous electrical demand under EAD energy efficiency rules.',
+                  detailAr: 'استهلاك كهربائي مستمر عالي الميغاوات يخضع لمعايير كفاءة الطاقة EAD.',
+                  status: 'warning',
+                },
+              ];
+              compliance = {
+                authorityEn: 'Regulated by Environment Agency - Abu Dhabi (EAD) & MoIAT',
+                authorityAr: 'خاضع لرقابة هيئة البيئة - أبوظبي ووزارة الصناعة',
+                cemsStatusEn: '8 Live CEMS Stacks Active',
+                cemsStatusAr: '8 مداخن رصد مستمر متصلة بالبث المباشر',
+                auditDate: 'Q4 2026',
+              };
+            } else if (targetFeat.id === 'feat-mfg-3' || targetFeat.nameEn.toLowerCase().includes('polymer') || targetFeat.nameEn.toLowerCase().includes('borouge')) {
+              overallScore = 85;
+              reasonEn = 'Petrochemical polymer compounding with Volatile Organic Compounds (VOC) emission potential and large-scale bulk plastic pellet handling in ICAD III.';
+              reasonAr = 'خلط وتصنيع البوليمرات البتروكيماوية مع احتمالية انبعاث المركبات العضوية المتطايرة (VOC) وتخزين الحبيبات البلاستيكية في مصفح ICAD III.';
+              factors = [
+                {
+                  categoryEn: 'Volatile Organic Compounds (VOCs)',
+                  categoryAr: 'المركبات العضوية المتطايرة (VOC)',
+                  score: 88,
+                  weight: '35% Weight',
+                  detailEn: 'Hydrocarbon processing requires optical gas imaging leak detection.',
+                  detailAr: 'معالجة الهيدروكربونات تتطلب كشفاً بصرياً مستمراً لتسربات الغاز.',
+                  status: 'critical',
+                },
+                {
+                  categoryEn: 'Flammable Monomer Bulk Storage',
+                  categoryAr: 'تخزين المونومرات السائلة القابلة للاشتعال',
+                  score: 87,
+                  weight: '25% Weight',
+                  detailEn: 'Pressurized additive and compound containment tanks exceeding safety tiers.',
+                  detailAr: 'خزانات مضغوطة للمواد المضافة والمذيبات تتجاوز معايير السلامة القياسية.',
+                  status: 'critical',
+                },
+                {
+                  categoryEn: 'Microplastic & Pellet Runoff Containment',
+                  categoryAr: 'احتواء الحبيبات البلاستيكية في شبكات التصريف',
+                  score: 81,
+                  weight: '20% Weight',
+                  detailEn: 'Stormwater multi-stage pellet interceptor systems monitored by EAD.',
+                  detailAr: 'أنظمة فصل الحبيبات في مياه الأمطار تخضع لتفتيش دوري من هيئة البيئة.',
+                  status: 'warning',
+                },
+                {
+                  categoryEn: 'Annual Process Emissions Footprint',
+                  categoryAr: 'البصمة الكربونية للعمليات التشغيلية',
+                  score: 82,
+                  weight: '20% Weight',
+                  detailEn: 'Compounding emissions footprint of 940 kt CO₂ eq/year.',
+                  detailAr: 'بصمة كربونية سنوية تبلغ 940 ألف طن CO₂ سنوياً.',
+                  status: 'warning',
+                },
+              ];
+              compliance = {
+                authorityEn: 'Verified SDI Layer • EAD Regulated',
+                authorityAr: 'طبقة SDI موثوقة • مرخصة من هيئة البيئة',
+                cemsStatusEn: 'Continuous Optical VOC Monitoring',
+                cemsStatusAr: 'رصد بصري مستمر للمركبات المتطايرة',
+                auditDate: 'Q3 2026',
+              };
+            } else if (targetFeat.id === 'feat-mfg-4' || targetFeat.nameEn.toLowerCase().includes('chemical') || targetFeat.nameEn.toLowerCase().includes('solvent')) {
+              overallScore = 81;
+              reasonEn = 'Tier-2 hazardous chemical and industrial solvent blending inventory with flammable containment near Mussafah commercial logistics routes.';
+              reasonAr = 'مخزون مواد كيميائية ومذيبات صناعية خطرة من الفئة الثانية مع احتواء مواد قابلة للاشتعال قرب ممرات النقل التجاري.';
+              factors = [
+                {
+                  categoryEn: 'Chemical Hazard Toxicity Classification',
+                  categoryAr: 'تصنيف السمية والمخاطر الكيميائية',
+                  score: 86,
+                  weight: '35% Weight',
+                  detailEn: 'Bulk inventory of industrial solvents, thinner compounds, and caustic solutions.',
+                  detailAr: 'مخزون ضخم من المذيبات الصناعية والمواد القلوية والكيماوية.',
+                  status: 'critical',
+                },
+                {
+                  categoryEn: 'Secondary Bunding & Spill Containment',
+                  categoryAr: 'سلامة الاحتواء الثانوي ومنع التسرب',
+                  score: 82,
+                  weight: '25% Weight',
+                  detailEn: '110% capacity retention bunds and automatic shutoff valves installed.',
+                  detailAr: 'أحواض احتواء بسعة 110% مع صمامات إغلاق تلقائي عند الطوارئ.',
+                  status: 'warning',
+                },
+                {
+                  categoryEn: 'Urban Proximity & Transport Exposure',
+                  categoryAr: 'القرب من المناطق الحضرية وشبكة النقل',
+                  score: 79,
+                  weight: '20% Weight',
+                  detailEn: 'Located 2.5 km from residential support sectors in Mussafah.',
+                  detailAr: 'تقع على بعد 2.5 كم من القطاعات الخدمية والسكنية في مصفح.',
+                  status: 'warning',
+                },
+                {
+                  categoryEn: 'Emergency HAZMAT Response Readiness',
+                  categoryAr: 'جاهزية الاستجابة للمواد الخطرة (HAZMAT)',
+                  score: 76,
+                  weight: '20% Weight',
+                  detailEn: 'Direct telemetry linked with Abu Dhabi Civil Defense and EAD.',
+                  detailAr: 'ربط مباشر مع الدفاع المدني في أبوظبي وهيئة البيئة.',
+                  status: 'acceptable',
+                },
+              ];
+              compliance = {
+                authorityEn: 'Abu Dhabi Hazardous Material Framework (EAD)',
+                authorityAr: 'إطار إدارة المواد الخطرة بهيئة البيئة - أبوظبي',
+                cemsStatusEn: 'Vapor Leak Sensors 100% Online',
+                cemsStatusAr: 'مجسات تسرب الأبخرة متصلة بنسبة 100%',
+                auditDate: 'Q1 2026 (Verified)',
+              };
+            } else if (targetFeat.id === 'feat-mfg-5' || targetFeat.nameEn.toLowerCase().includes('galvanizing') || targetFeat.nameEn.toLowerCase().includes('metallurgy')) {
+              overallScore = 79;
+              reasonEn = 'Heavy hot-dip zinc galvanizing and electroplating lines utilizing hydrochloric acid pickling tanks adjacent to Khalifa Port marine waterways.';
+              reasonAr = 'خطوط جلفنة الزنك بالغمس الساخن والطلاء الكهربائي باستخدام أحواض التخليل الحمضي بمحاذاة الممرات المائية لميناء خليفة.';
+              factors = [
+                {
+                  categoryEn: 'Acid Pickling Bath Fume Extraction',
+                  categoryAr: 'استخلاص أبخرة أحواض التخليل الحمضي',
+                  score: 83,
+                  weight: '35% Weight',
+                  detailEn: 'Hydrochloric acid (HCl) fume scrubbers operating under EAD stack limits.',
+                  detailAr: 'أجهزة غسل أبخرة حمض الهيدروكلوريك تعمل ضمن الحدود البيئية.',
+                  status: 'critical',
+                },
+                {
+                  categoryEn: 'Heavy Metal Liquid Effluent Pre-treatment',
+                  categoryAr: 'معالجة المخلفات السائلة المحتوية على معادن ثقيلة',
+                  score: 80,
+                  weight: '25% Weight',
+                  detailEn: 'Zinc and iron neutralization system before marine trade discharge.',
+                  detailAr: 'نظام معادلة الزنك والحديد قبل التصريف في الشبكة الصناعية.',
+                  status: 'warning',
+                },
+                {
+                  categoryEn: 'Khalifa Port Marine Canal Proximity',
+                  categoryAr: 'القرب من القنوات البحرية لميناء خليفة',
+                  score: 77,
+                  weight: '20% Weight',
+                  detailEn: 'Located 1.8 km from deepwater maritime shipping basin in KIZAD B.',
+                  detailAr: 'تقع على بعد 1.8 كم من حوض الشحن البحري في كيزاد B.',
+                  status: 'warning',
+                },
+                {
+                  categoryEn: 'Occupational Safety & Exhaust Air Quality',
+                  categoryAr: 'السلامة المهنية وجودة الهواء المنبعث',
+                  score: 74,
+                  weight: '20% Weight',
+                  detailEn: 'High-volume roof exhaust ventilation with particulate filters.',
+                  detailAr: 'تهوية سقفية عالية السعة مزودة بمرشحات احتجاز الجسيمات.',
+                  status: 'acceptable',
+                },
+              ];
+              compliance = {
+                authorityEn: 'Environment Agency - Abu Dhabi (EAD) & AD Ports',
+                authorityAr: 'هيئة البيئة - أبوظبي وموانئ أبوظبي',
+                cemsStatusEn: 'Effluent pH & Stack CEMS Online',
+                cemsStatusAr: 'مجسات الحموضة ومداخن CEMS متصلة',
+                auditDate: 'Q2 2026',
+              };
+            } else {
+              // Default EGA Al Taweelah Smelter
+              overallScore = 92;
+              reasonEn = 'Continuous large-scale electrolytic aluminium smelting generating 3.2 Mt CO₂ eq/year and 290 t/yr SO₂/fluorides, combined with thermal cooling water discharge near coastal habitat buffer.';
+              reasonAr = 'عمليات صهر واختزال الألمنيوم الكبرى المستمرة التي تولد 3.2 مليون طن CO₂ سنوياً و290 طن/سنة من ثاني أكسيد الكبريت والفلورايد، مع تصريف مياه التبريد الحرارية قرب الساحل.';
+              factors = [
+                {
+                  categoryEn: 'Atmospheric Smelting & Potline Stack Emissions',
+                  categoryAr: 'انبعاثات خطوط الصهر والمداخن الجوية',
+                  score: 94,
+                  weight: '35% Weight',
+                  detailEn: 'CO₂ & SO₂ flue output exceeds 3.0 Mt/year baseline threshold.',
+                  detailAr: 'حجم انبعاثات ثاني أكسيد الكربون والكبريت يتجاوز 3.0 مليون طن سنوياً.',
+                  status: 'critical',
+                },
+                {
+                  categoryEn: 'Hazardous Electrolyte & Anode Rodding Containment',
+                  categoryAr: 'تخزين المواد الكيميائية الخطرة والأقطاب',
+                  score: 90,
+                  weight: '25% Weight',
+                  detailEn: 'Tier-2 hazardous fluoride and pitch containment (> 50,000 m³ volume on site).',
+                  detailAr: 'احتواء مواد كيميائية وفلوريدات بحجم يتجاوز 50,000 متر مكعب في الموقع.',
+                  status: 'critical',
+                },
+                {
+                  categoryEn: 'Proximity to Marine & Coastal Habitat Buffer',
+                  categoryAr: 'القرب من الموائل الساحلية والبحرية',
+                  score: 88,
+                  weight: '20% Weight',
+                  detailEn: 'Facility boundary is located within 1.2 km of Arabian Gulf shoreline.',
+                  detailAr: 'تقع حدود المنشأة على بعد 1.2 كم من الساحل البحري.',
+                  status: 'warning',
+                },
+                {
+                  categoryEn: 'Thermal Cooling Water Effluent Discharge',
+                  categoryAr: 'تصريف مياه التبريد الحرارية',
+                  score: 82,
+                  weight: '20% Weight',
+                  detailEn: 'High-temperature cooling return requires active marine dispersion modeling.',
+                  detailAr: 'مياه التبريد الحرارية تتطلب نمذجة تشتيت مائي بحري مستمرة.',
+                  status: 'warning',
+                },
+              ];
+              compliance = {
+                authorityEn: 'Regulated by Environment Agency - Abu Dhabi (EAD)',
+                authorityAr: 'مرخص وخاضع لرقابة هيئة البيئة - أبوظبي',
+                cemsStatusEn: '12 Live CEMS Sensors Online',
+                cemsStatusAr: '12 مجس رصد مستمر متصل بالبث المباشر',
+                auditDate: 'Q3 2026',
+              };
+            }
+
+            responseEn = `Environmental Risk Evaluation for ${targetFeat.nameEn}:\n\nThis facility is classified with an Overall Risk Score of ${overallScore}/100 (High Risk) under Environment Agency - Abu Dhabi (EAD) Industrial Permitting Framework.\n\nPrimary Driver: ${reasonEn}`;
+            responseAr = `تقييم المخاطر البيئية لـ ${targetFeat.nameAr}:\n\nتم تصنيف هذه المنشأة بدرجة خطورة إجمالية ${overallScore}/100 (عالية الخطورة) وفق إطار التراخيص الصناعية لهيئة البيئة - أبوظبي (EAD).\n\nالسبب الرئيسي: ${reasonAr}`;
+
+            newCenter = [targetFeat.lat, targetFeat.lng];
+            newZoom = 15;
+            setSelectedFeature(targetFeat);
+            matchedFeats = [targetFeat];
+            setSelectedCategoryIds(['utilities']);
+
+            riskBreakdownData = {
+              facilityNameEn: targetFeat.nameEn,
+              facilityNameAr: targetFeat.nameAr,
+              zoneEn: targetFeat.addressEn,
+              zoneAr: targetFeat.addressAr,
+              overallScore,
+              riskLevel: 'High',
+              primaryReasonEn: reasonEn,
+              primaryReasonAr: reasonAr,
+              factors,
+              complianceInfo: compliance,
+            };
+
+            recsEn = [
+              'Compare emissions between Mussafah and KIZAD',
+              'Show high-risk manufacturing facilities in Abu Dhabi',
+              'View continuous emission monitoring sensors',
+              'Simulate 2 km risk buffer zone',
+            ];
+            recsAr = [
+              'مقارنة الانبعاثات بين مصفح وكيزاد',
+              'عرض المنشآت الصناعية عالية الخطورة في أبوظبي',
+              'معاينة مجسات الرصد المستمر للانبعاثات',
+              'محاكاة نطاق عازل 2 كم حول المنشأة',
+            ];
+          }
+
           // -------------------------------------------------------------------------
           // Flow Option 1: "Show hospitals in Khalifa City"
           // -------------------------------------------------------------------------
@@ -1606,6 +2070,8 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({ children }
             noResultsSuggestions: noResSuggs,
             categoryBreakdown: catBreakdown,
             openHoursBreakdown: openChartData,
+            comparisonData: comparisonChartData,
+            riskBreakdownData: riskBreakdownData,
             locationPromptRequired: locRequired,
             detailsFeatureId: detFeatId,
             detailsFeature: detFeat,

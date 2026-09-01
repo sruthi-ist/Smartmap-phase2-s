@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAppState } from '../../context/AppStateContext';
 import { GEO_FEATURES } from '../../data/mockAbuDhabiData';
 import {
@@ -12,6 +12,8 @@ import {
   Crosshair,
   Navigation,
   MousePointer2,
+  Menu,
+  ChevronUp,
 } from 'lucide-react';
 
 export const MapToolbar: React.FC = () => {
@@ -29,6 +31,8 @@ export const MapToolbar: React.FC = () => {
     setSelectedFeature,
     filteredFeatures,
   } = useAppState();
+
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleExploreToggle = () => {
     setActiveTool('none');
@@ -97,6 +101,8 @@ export const MapToolbar: React.FC = () => {
     }
   };
 
+  const isAnyMenuToolActive = filterDrawerOpen || activeTool !== 'none';
+
   // High-Contrast Vivid Solid Blue Active Highlight
   const getToolBtnStyle = (isActive: boolean) => {
     return isActive
@@ -105,64 +111,9 @@ export const MapToolbar: React.FC = () => {
   };
 
   return (
-    <>
-      <div className="absolute top-4 sm:top-6 left-3 sm:left-4 rtl:left-auto rtl:right-3 sm:rtl:right-4 z-[600] flex flex-col gap-2 items-center">
-        
-        {/* Top Capsule: Explore, Draw, Basemap, Legend */}
-        <div className="glass-level-3 bg-white/85 dark:bg-slate-900/90 backdrop-blur-xl p-1 rounded-2xl shadow-xl border border-white/80 dark:border-slate-700/80 flex flex-col items-center gap-1 w-12 sm:w-13">
-          
-          {/* Explore */}
-          <button
-            onClick={handleExploreToggle}
-            className={`w-full py-1.5 px-0.5 rounded-xl flex flex-col items-center gap-0.5 transition-all cursor-pointer ${getToolBtnStyle(
-              filterDrawerOpen
-            )}`}
-            title={language === 'ar' ? 'استكشاف معالم GIS والتصفية' : 'Explore GIS Datasets & Filters'}
-          >
-            <Compass className="w-4 h-4 stroke-[2]" />
-            <span className="text-[8px] font-extrabold tracking-tight leading-none">{language === 'ar' ? 'استكشاف' : 'Explore'}</span>
-          </button>
-
-          {/* Draw */}
-          <button
-            onClick={handleDrawToggle}
-            className={`w-full py-1.5 px-0.5 rounded-xl flex flex-col items-center gap-0.5 transition-all cursor-pointer ${getToolBtnStyle(
-              activeTool === 'sketch'
-            )}`}
-            title={language === 'ar' ? 'رسم منطقة الاهتمام' : 'Draw AOI Polygon'}
-          >
-            <Pencil className="w-4 h-4 stroke-[2]" />
-            <span className="text-[8px] font-extrabold tracking-tight leading-none">{language === 'ar' ? 'رسم' : 'Draw'}</span>
-          </button>
-
-        {/* Basemap */}
-        <button
-          onClick={handleBasemapToggle}
-          className={`w-full py-1.5 px-0.5 rounded-xl flex flex-col items-center gap-0.5 transition-all cursor-pointer ${getToolBtnStyle(
-            activeTool === 'basemap'
-          )}`}
-          title={language === 'ar' ? 'تغيير خريطة الأساس' : 'Change Basemap Tiles'}
-        >
-          <Layers className="w-4 h-4 stroke-[2]" />
-          <span className="text-[8px] font-extrabold tracking-tight leading-none">{language === 'ar' ? 'الخريطة' : 'Basemap'}</span>
-        </button>
-
-        {/* Legend */}
-        <button
-          onClick={handleLegendToggle}
-          className={`w-full py-1.5 px-0.5 rounded-xl flex flex-col items-center gap-0.5 transition-all cursor-pointer ${getToolBtnStyle(
-            activeTool === 'legend'
-          )}`}
-          title={language === 'ar' ? 'عرض مفتاح الخريطة' : 'View Map Legend'}
-        >
-          <List className="w-4 h-4 stroke-[2]" />
-          <span className="text-[8px] font-extrabold tracking-tight leading-none">{language === 'ar' ? 'المفتاح' : 'Legend'}</span>
-        </button>
-
-      </div>
-
-      {/* Bottom Capsule: +, -, Home, Locate, Compass, Divider, Select */}
-      <div className="glass-level-3 bg-white/85 dark:bg-slate-900/90 backdrop-blur-xl p-1 rounded-2xl shadow-xl border border-white/80 dark:border-slate-700/80 flex flex-col items-center gap-1 w-12 sm:w-13">
+    <div className="absolute top-4 sm:top-6 left-3 sm:left-4 rtl:left-auto rtl:right-3 sm:rtl:right-4 z-[600] flex flex-col items-center">
+      {/* Single Unified Capsule Group */}
+      <div className="glass-level-3 bg-white/85 dark:bg-slate-900/90 backdrop-blur-xl p-1 rounded-2xl shadow-xl border border-white/80 dark:border-slate-700/80 flex flex-col items-center gap-1 w-12 sm:w-13 transition-all duration-300">
         
         {/* Zoom In (+ icon only) */}
         <button
@@ -192,44 +143,123 @@ export const MapToolbar: React.FC = () => {
           <span className="text-[8px] font-bold tracking-tight leading-none">{language === 'ar' ? 'الرئيسية' : 'Home'}</span>
         </button>
 
-        {/* Locate */}
+        {/* Menu Button Toggle */}
         <button
-          onClick={handleLocateClick}
-          className="w-full py-1 px-0.5 rounded-xl flex flex-col items-center gap-0.5 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-geovision-blue transition-all cursor-pointer"
-          title={language === 'ar' ? 'تحديد الموقع الحالي' : 'Locate Current Position'}
+          onClick={() => setMenuOpen(!menuOpen)}
+          className={`relative w-full py-1 px-0.5 rounded-xl flex flex-col items-center gap-0.5 transition-all cursor-pointer ${
+            menuOpen
+              ? 'bg-geovision-blue text-white shadow-md font-black border border-geovision-blue'
+              : 'text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-geovision-blue border border-transparent'
+          }`}
+          title={menuOpen ? (language === 'ar' ? 'إغلاق القائمة' : 'Close Menu') : (language === 'ar' ? 'فتح القائمة' : 'Expand Menu')}
         >
-          <Crosshair className="w-3.5 h-3.5 stroke-[2]" />
-          <span className="text-[8px] font-bold tracking-tight leading-none">{language === 'ar' ? 'تحديد' : 'Locate'}</span>
+          {menuOpen ? (
+            <ChevronUp className="w-3.5 h-3.5 stroke-[2.5]" />
+          ) : (
+            <Menu className="w-3.5 h-3.5 stroke-[2]" />
+          )}
+          <span className="text-[8px] font-bold tracking-tight leading-none">{language === 'ar' ? 'القائمة' : 'Menu'}</span>
+
+          {/* Active dot indicator when menu is closed but a tool inside is active */}
+          {!menuOpen && isAnyMenuToolActive && (
+            <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-geovision-blue animate-pulse" />
+          )}
         </button>
 
-        {/* Compass */}
-        <button
-          onClick={handleCompassClick}
-          className="w-full py-1 px-0.5 rounded-xl flex flex-col items-center gap-0.5 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-geovision-blue transition-all cursor-pointer"
-          title={language === 'ar' ? 'توجيه الخريطة إلى الشمال' : 'Map Orientation (North)'}
-        >
-          <Navigation className="w-3.5 h-3.5 stroke-[2]" />
-          <span className="text-[8px] font-bold tracking-tight leading-none">{language === 'ar' ? 'البوصلة' : 'Compass'}</span>
-        </button>
+        {/* Expandable Menu Section */}
+        {menuOpen && (
+          <div className="w-full flex flex-col items-center gap-1 pt-1 border-t border-slate-200/80 dark:border-slate-700/80 animate-in fade-in slide-in-from-top-2 duration-200">
+            
+            {/* Explore */}
+            <button
+              onClick={handleExploreToggle}
+              className={`w-full py-1.5 px-0.5 rounded-xl flex flex-col items-center gap-0.5 transition-all cursor-pointer ${getToolBtnStyle(
+                filterDrawerOpen
+              )}`}
+              title={language === 'ar' ? 'استكشاف معالم GIS والتصفية' : 'Explore GIS Datasets & Filters'}
+            >
+              <Compass className="w-4 h-4 stroke-[2]" />
+              <span className="text-[8px] font-extrabold tracking-tight leading-none">{language === 'ar' ? 'استكشاف' : 'Explore'}</span>
+            </button>
 
-        {/* Divider */}
-        <div className="w-5 h-px bg-slate-200 dark:bg-slate-700 my-0.5" />
+            {/* Draw */}
+            <button
+              onClick={handleDrawToggle}
+              className={`w-full py-1.5 px-0.5 rounded-xl flex flex-col items-center gap-0.5 transition-all cursor-pointer ${getToolBtnStyle(
+                activeTool === 'sketch'
+              )}`}
+              title={language === 'ar' ? 'رسم منطقة الاهتمام' : 'Draw AOI Polygon'}
+            >
+              <Pencil className="w-4 h-4 stroke-[2]" />
+              <span className="text-[8px] font-extrabold tracking-tight leading-none">{language === 'ar' ? 'رسم' : 'Draw'}</span>
+            </button>
 
-        {/* Select */}
-        <button
-          onClick={handleSelectToggle}
-          className={`w-full py-1 px-0.5 rounded-xl flex flex-col items-center gap-0.5 transition-all cursor-pointer ${getToolBtnStyle(
-            activeTool === 'identify'
-          )}`}
-          title={language === 'ar' ? 'تحديد ومعاينة المعالم' : 'Select / Inspect Feature'}
-        >
-          <MousePointer2 className="w-3.5 h-3.5 stroke-[2]" />
-          <span className="text-[8px] font-bold tracking-tight leading-none">{language === 'ar' ? 'تحديد' : 'Select'}</span>
-        </button>
+            {/* Basemap */}
+            <button
+              onClick={handleBasemapToggle}
+              className={`w-full py-1.5 px-0.5 rounded-xl flex flex-col items-center gap-0.5 transition-all cursor-pointer ${getToolBtnStyle(
+                activeTool === 'basemap'
+              )}`}
+              title={language === 'ar' ? 'تغيير خريطة الأساس' : 'Change Basemap Tiles'}
+            >
+              <Layers className="w-4 h-4 stroke-[2]" />
+              <span className="text-[8px] font-extrabold tracking-tight leading-none">{language === 'ar' ? 'الخريطة' : 'Basemap'}</span>
+            </button>
+
+            {/* Legend */}
+            <button
+              onClick={handleLegendToggle}
+              className={`w-full py-1.5 px-0.5 rounded-xl flex flex-col items-center gap-0.5 transition-all cursor-pointer ${getToolBtnStyle(
+                activeTool === 'legend'
+              )}`}
+              title={language === 'ar' ? 'عرض مفتاح الخريطة' : 'View Map Legend'}
+            >
+              <List className="w-4 h-4 stroke-[2]" />
+              <span className="text-[8px] font-extrabold tracking-tight leading-none">{language === 'ar' ? 'المفتاح' : 'Legend'}</span>
+            </button>
+
+            {/* Divider */}
+            <div className="w-5 h-px bg-slate-200 dark:bg-slate-700 my-0.5" />
+
+            {/* Locate */}
+            <button
+              onClick={handleLocateClick}
+              className="w-full py-1 px-0.5 rounded-xl flex flex-col items-center gap-0.5 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-geovision-blue transition-all cursor-pointer"
+              title={language === 'ar' ? 'تحديد الموقع الحالي' : 'Locate Current Position'}
+            >
+              <Crosshair className="w-3.5 h-3.5 stroke-[2]" />
+              <span className="text-[8px] font-bold tracking-tight leading-none">{language === 'ar' ? 'تحديد' : 'Locate'}</span>
+            </button>
+
+            {/* Compass */}
+            <button
+              onClick={handleCompassClick}
+              className="w-full py-1 px-0.5 rounded-xl flex flex-col items-center gap-0.5 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-geovision-blue transition-all cursor-pointer"
+              title={language === 'ar' ? 'توجيه الخريطة إلى الشمال' : 'Map Orientation (North)'}
+            >
+              <Navigation className="w-3.5 h-3.5 stroke-[2]" />
+              <span className="text-[8px] font-bold tracking-tight leading-none">{language === 'ar' ? 'البوصلة' : 'Compass'}</span>
+            </button>
+
+            {/* Divider */}
+            <div className="w-5 h-px bg-slate-200 dark:bg-slate-700 my-0.5" />
+
+            {/* Select */}
+            <button
+              onClick={handleSelectToggle}
+              className={`w-full py-1 px-0.5 rounded-xl flex flex-col items-center gap-0.5 transition-all cursor-pointer ${getToolBtnStyle(
+                activeTool === 'identify'
+              )}`}
+              title={language === 'ar' ? 'تحديد ومعاينة المعالم' : 'Select / Inspect Feature'}
+            >
+              <MousePointer2 className="w-3.5 h-3.5 stroke-[2]" />
+              <span className="text-[8px] font-bold tracking-tight leading-none">{language === 'ar' ? 'تحديد' : 'Select'}</span>
+            </button>
+
+          </div>
+        )}
 
       </div>
-
     </div>
-    </>
   );
 };

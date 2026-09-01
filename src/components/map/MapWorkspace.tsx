@@ -4,7 +4,6 @@ import { useAppState } from '../../context/AppStateContext';
 import { GEO_FEATURES } from '../../data/mockAbuDhabiData';
 import type { DrawnShape, GeoFeature } from '../../types';
 import { MapToolbar } from './MapToolbar';
-import { IdentifyPanel } from './IdentifyPanel';
 import { BasemapGallery } from './BasemapGallery';
 import { MapLegend } from './MapLegend';
 import { BufferTool } from './BufferTool';
@@ -20,6 +19,7 @@ export const MapWorkspace: React.FC = () => {
     language,
     activeBasemap,
     activeTool,
+    selectedFeature,
     setSelectedFeature,
     mapCenter,
     mapZoom,
@@ -33,12 +33,16 @@ export const MapWorkspace: React.FC = () => {
     userDrawnShapes,
     setUserDrawnShapes,
     sendAIMessage,
+    addFavorite,
+    isFavorite,
   } = useAppState();
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
   const markersGroupRef = useRef<L.LayerGroup | null>(null);
+  const markersMapRef = useRef<Map<string, L.Marker>>(new Map());
+  const standalonePopupRef = useRef<L.Popup | null>(null);
   const drawnLayersGroupRef = useRef<L.LayerGroup | null>(null);
   const bufferCircleRef = useRef<L.Circle | null>(null);
   const aoiPolygonRef = useRef<L.Polygon | null>(null);
@@ -156,70 +160,203 @@ export const MapWorkspace: React.FC = () => {
     }
   }, [mapCenter, mapZoom]);
 
+  const buildFeaturePopupHtml = (feat: GeoFeature) => {
+    const color = getCategoryColor(feat.category);
+    const title = language === 'ar' ? feat.nameAr : feat.nameEn;
+    const address = language === 'ar' ? feat.addressAr : feat.addressEn;
+    const categoryLabel = `${feat.category.toUpperCase()} • ${feat.subcategory.toUpperCase()}`;
+    const isFav = isFavorite(feat.nameEn);
+
+    // Contact info (phone & website)
+    let contactHtml = '';
+    if (feat.phone || feat.website) {
+      contactHtml = `
+        <div style="margin-top: 5px; font-size: 11px; display: flex; flex-direction: column; gap: 3px;">
+          ${feat.phone ? `<div style="display:flex;align-items:center;gap:5px;"><span style="color:#7DA1C4;">📞</span><a href="tel:${feat.phone}" style="color:#215A9E;font-weight:800;text-decoration:none;">${feat.phone}</a></div>` : ''}
+          ${feat.website ? `<div style="display:flex;align-items:center;gap:5px;"><span style="color:#7DA1C4;">🌐</span><a href="${feat.website}" target="_blank" rel="noreferrer" style="color:#215A9E;font-weight:800;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:230px;">${feat.website}</a></div>` : ''}
+        </div>
+      `;
+    }
+
+    // Dynamic Metadata Attributes with Glassmorphism container
+    let metadataHtml = '';
+    if (feat.metadata && Object.keys(feat.metadata).length > 0) {
+      const rows = Object.entries(feat.metadata)
+        .map(([k, v]) => `
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 10.5px; margin-top: 2.5px;">
+            <span class="popup-text-sub" style="font-weight: 700;">${k}:</span>
+            <span class="popup-meta-val" style="font-weight: 900;">${String(v)}</span>
+          </div>
+        `).join('');
+      metadataHtml = `
+        <div class="popup-meta-box">
+          <span style="font-size: 8.5px; font-weight: 900; color: #7DA1C4; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 2px;">
+            ${language === 'ar' ? 'الخصائص المكانية الموثوقة' : 'Authoritative GIS Attributes'}
+          </span>
+          ${rows}
+        </div>
+      `;
+    }
+
+    return `
+      <div style="font-family: var(--font-dge, sans-serif); padding: 2px; min-width: 260px; max-width: 315px; max-height: 390px; overflow-y: auto;" class="custom-scrollbar">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px;">
+          <span style="font-size: 9px; font-weight: 900; background-color: ${color}20; color: ${color}; padding: 2px 7px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid ${color}30;">
+            ${categoryLabel}
+          </span>
+          ${feat.isAuthoritative ? `<span style="font-size: 9.5px; font-weight: 800; color: #10B981; display:flex; align-items:center; gap:2px;">🛡️ ${language === 'ar' ? 'موثوق SDI' : 'Verified SDI'}</span>` : ''}
+        </div>
+        
+        <h4 class="popup-title" style="font-size: 13px; font-weight: 900; margin: 0 0 3px 0; line-height: 1.3;">
+          ${title}
+        </h4>
+        
+        <p class="popup-text-sub" style="font-size: 10.5px; font-weight: 600; margin: 0 0 3px 0; line-height: 1.3;">
+          📍 ${address}
+        </p>
+
+        ${contactHtml}
+        ${metadataHtml}
+
+        <div style="border-top: 1px solid rgba(125, 161, 196, 0.2); margin-top: 8px; padding-top: 6px; display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+          <button
+            id="pop-ask-ai-${feat.id}"
+            class="popup-ask-ai-btn"
+            style="flex: 1; padding: 6px 10px; font-size: 11px;"
+          >
+            ✨ ${language === 'ar' ? 'اسأل GeoVision' : 'Ask GeoVision'}
+          </button>
+          <button
+            id="pop-fav-${feat.id}"
+            class="popup-fav-btn"
+            style="padding: 5px 9px; border: 1px solid ${isFav ? '#F59E0B' : 'rgba(125, 161, 196, 0.3)'}; background: ${isFav ? '#FEF3C7' : 'rgba(255,255,255,0.6)'}; color: ${isFav ? '#D97706' : '#545860'}; font-size: 13px;"
+            title="${language === 'ar' ? 'إضافة إلى المفضلة' : 'Save to Favorites'}"
+          >
+            ${isFav ? '★' : '☆'}
+          </button>
+        </div>
+      </div>
+    `;
+  };
+
+  const attachPopupEvents = (feat: GeoFeature) => {
+    const askAiBtn = document.getElementById(`pop-ask-ai-${feat.id}`);
+    if (askAiBtn) {
+      askAiBtn.onclick = (e) => {
+        e.stopPropagation();
+        setAiPanelOpen(true);
+        const featName = language === 'ar' ? feat.nameAr : feat.nameEn;
+        sendAIMessage(
+          language === 'ar'
+            ? `أخبرني بالمزيد عن ${featName} والخدمات المكانية المحيطة به.`
+            : `Tell me more about ${featName} and its surrounding spatial services.`
+        );
+      };
+    }
+
+    const favBtn = document.getElementById(`pop-fav-${feat.id}`);
+    if (favBtn) {
+      favBtn.onclick = (e) => {
+        e.stopPropagation();
+        addFavorite({
+          type: 'location',
+          nameEn: feat.nameEn,
+          nameAr: feat.nameAr,
+          categoryEn: feat.category,
+          categoryAr: feat.category,
+          lat: feat.lat,
+          lng: feat.lng,
+        });
+        favBtn.innerHTML = '★';
+        favBtn.style.background = '#FEF3C7';
+        favBtn.style.color = '#D97706';
+        favBtn.style.borderColor = '#F59E0B';
+        showToast(language === 'ar' ? 'تمت الإضافة إلى المفضلة' : 'Saved to Favorites');
+      };
+    }
+  };
+
   // Update Feature Markers & Layer Clusters
   useEffect(() => {
     if (!mapInstanceRef.current || !markersGroupRef.current) return;
 
     markersGroupRef.current.clearLayers();
+    const newMarkersMap = new Map<string, L.Marker>();
 
     filteredFeatures.forEach((feat) => {
-      const color = getCategoryColor(feat.category);
       const customIcon = createGeoVisionMarkerIcon(feat.category, feat.subcategory);
-
-      const title = language === 'ar' ? feat.nameAr : feat.nameEn;
-      const address = language === 'ar' ? feat.addressAr : feat.addressEn;
-      const categoryLabel = feat.category.toUpperCase();
-
-      const popupHtml = `
-        <div style="font-family: var(--font-en); padding: 4px;">
-          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px;">
-            <span style="font-size: 10px; font-weight: 800; background-color: ${color}20; color: ${color}; padding: 3px 8px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.5px;">
-              ${categoryLabel}
-            </span>
-            ${feat.isAuthoritative ? `<span style="font-size: 10px; font-weight: 800; color: #10B981;">✓ Verified</span>` : ''}
-          </div>
-          <h4 style="font-size: 13px; font-weight: 900; margin: 0 0 4px 0; color: inherit; line-height: 1.3;">
-            ${title}
-          </h4>
-          <p style="font-size: 11px; font-weight: 500; opacity: 0.8; margin: 0 0 10px 0;">
-            📍 ${address}
-          </p>
-          <div style="border-top: 1px solid rgba(0,0,0,0.08); padding-top: 8px; display: flex; align-items: center; justify-content: space-between;">
-            <span style="font-size: 10px; font-weight: 700; opacity: 0.6;">
-              ${feat.lat.toFixed(3)}°N, ${feat.lng.toFixed(3)}°E
-            </span>
-            <button
-              id="pop-btn-${feat.id}"
-              style="background: #176BFF; color: white; border: none; padding: 5px 12px; border-radius: 12px; font-size: 11px; font-weight: 800; cursor: pointer; transition: all 0.2s;"
-            >
-              Inspect →
-            </button>
-          </div>
-        </div>
-      `;
+      const popupHtml = buildFeaturePopupHtml(feat);
 
       const marker = L.marker([feat.lat, feat.lng], { icon: customIcon });
-      marker.bindPopup(popupHtml, { maxWidth: 260 });
+      marker.bindPopup(popupHtml, {
+        maxWidth: 320,
+        className: 'geovision-map-popup',
+        autoPan: true,
+        autoPanPadding: [40, 120],
+        autoPanPaddingTopLeft: L.point(40, 120),
+        autoPanPaddingBottomRight: L.point(40, 70),
+      });
 
       marker.on('click', () => {
         setSelectedFeature(feat);
         if (mapInstanceRef.current) {
-          mapInstanceRef.current.flyTo([feat.lat, feat.lng], 15);
+          const targetLat = feat.lat + 0.0035;
+          mapInstanceRef.current.flyTo([targetLat, feat.lng], 16, { duration: 0.8 });
         }
       });
 
       marker.on('popupopen', () => {
-        const btn = document.getElementById(`pop-btn-${feat.id}`);
-        if (btn) {
-          btn.onclick = () => {
-            setSelectedFeature(feat);
-          };
-        }
+        attachPopupEvents(feat);
       });
 
       markersGroupRef.current?.addLayer(marker);
+      newMarkersMap.set(feat.id, marker);
     });
-  }, [filteredFeatures, language, setSelectedFeature]);
+
+    markersMapRef.current = newMarkersMap;
+  }, [filteredFeatures, language, setSelectedFeature, isFavorite, addFavorite, sendAIMessage, showToast]);
+
+  // Open map popup directly on the selected location whenever a feature is selected
+  useEffect(() => {
+    if (!mapInstanceRef.current || !selectedFeature) return;
+
+    const map = mapInstanceRef.current;
+    const targetMarker = markersMapRef.current.get(selectedFeature.id);
+    const targetLat = selectedFeature.lat + 0.0035;
+
+    map.flyTo([targetLat, selectedFeature.lng], 16, { duration: 0.8 });
+
+    if (targetMarker) {
+      setTimeout(() => {
+        targetMarker.openPopup();
+      }, 350);
+    } else {
+      // If marker is not in filtered list, open a standalone popup at the exact coordinates
+      if (standalonePopupRef.current) {
+        standalonePopupRef.current.remove();
+        standalonePopupRef.current = null;
+      }
+      const popup = L.popup({
+        maxWidth: 320,
+        className: 'geovision-map-popup',
+        autoPan: true,
+        autoPanPadding: [40, 120],
+        autoPanPaddingTopLeft: L.point(40, 120),
+        autoPanPaddingBottomRight: L.point(40, 70),
+      })
+        .setLatLng([selectedFeature.lat, selectedFeature.lng])
+        .setContent(buildFeaturePopupHtml(selectedFeature));
+
+      popup.on('add', () => {
+        attachPopupEvents(selectedFeature);
+      });
+
+      setTimeout(() => {
+        popup.openOn(map);
+        standalonePopupRef.current = popup;
+      }, 350);
+    }
+  }, [selectedFeature, language]);
 
   // Render Selected Focused Area Ring geometry for AI & Map Interactions
   useEffect(() => {
@@ -277,6 +414,8 @@ export const MapWorkspace: React.FC = () => {
     if (!mapInstanceRef.current || !drawnLayersGroupRef.current) return;
 
     drawnLayersGroupRef.current.clearLayers();
+
+
 
     userDrawnShapes.forEach((shape) => {
       if (shape.type === 'point') {
@@ -652,9 +791,6 @@ export const MapWorkspace: React.FC = () => {
         {activeTool === 'legend' && <MapLegend />}
         {activeTool === 'buffer' && <BufferTool />}
         {activeTool === 'sketch' && <SketchAOITool />}
-
-        {/* Feature Inspector */}
-        <IdentifyPanel />
 
         {/* Print Modal */}
         <PrintMapModal />

@@ -118,6 +118,52 @@ export interface AIMessage {
     openNowCount: number;
     closedCount: number;
   };
+  comparisonData?: {
+    titleEn: string;
+    titleAr: string;
+    subtitleEn?: string;
+    subtitleAr?: string;
+    entityA: { nameEn: string; nameAr: string; totalEmissions: string; badge: string; color?: string };
+    entityB: { nameEn: string; nameAr: string; totalEmissions: string; badge: string; color?: string };
+    metrics: {
+      labelEn: string;
+      labelAr: string;
+      valA: string;
+      valB: string;
+      percentA: number;
+      percentB: number;
+      unit?: string;
+      highlight?: 'A' | 'B' | 'neutral';
+    }[];
+    takeawayEn?: string;
+    takeawayAr?: string;
+  };
+  riskBreakdownData?: {
+    facilityNameEn: string;
+    facilityNameAr: string;
+    zoneEn: string;
+    zoneAr: string;
+    overallScore: number;
+    riskLevel: 'High' | 'Medium' | 'Low';
+    primaryReasonEn: string;
+    primaryReasonAr: string;
+    factors: {
+      categoryEn: string;
+      categoryAr: string;
+      score: number;
+      weight: string;
+      detailEn: string;
+      detailAr: string;
+      status: 'critical' | 'warning' | 'acceptable';
+    }[];
+    complianceInfo?: {
+      authorityEn: string;
+      authorityAr: string;
+      cemsStatusEn: string;
+      cemsStatusAr: string;
+      auditDate: string;
+    };
+  };
   mapAction?: {
     type: 'zoom_and_filter' | 'highlight' | 'buffer' | 'aoi_summary';
     locationName?: string;

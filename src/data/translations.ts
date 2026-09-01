@@ -30,6 +30,9 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'prompt.parksAbuDhabi': 'Show public parks in Abu Dhabi',
     'prompt.govReem': 'What government facilities are near Al Reem Island?',
     'prompt.healthcareCompare': 'Compare healthcare facilities in two areas',
+    'prompt.highRiskManufacturing': 'Show high-risk manufacturing facilities in Abu Dhabi',
+    'prompt.compareEmissions': 'Compare emissions between Mussafah and KIZAD',
+    'prompt.whyHighRisk': 'Why is this facility high risk?',
 
     // Voice Search Overlay
     'voice.title': 'Listening to your request...',
@@ -215,6 +218,9 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     'prompt.parksAbuDhabi': 'عرض الحدائق العامة في أبوظبي',
     'prompt.govReem': 'ما هي المنشآت الحكومية القريبة من جزيرة الريم؟',
     'prompt.healthcareCompare': 'مقارنة الخدمات الصحية بين منطقتين',
+    'prompt.highRiskManufacturing': 'عرض المنشآت الصناعية عالية الخطورة في أبوظبي',
+    'prompt.compareEmissions': 'مقارنة الانبعاثات بين مصفح وكيزاد',
+    'prompt.whyHighRisk': 'لماذا هذه المنشأة عالية الخطورة؟',
 
     // Voice Search Overlay
     'voice.title': 'جاري الاستماع لطلبك...',

@@ -340,7 +340,7 @@ export const AIMessageSearchResults: React.FC<AIMessageSearchResultsProps> = ({
                 key={feat.id}
                 onClick={() => {
                   setSelectedFeature(feat);
-                  setMapCenterAndZoom([feat.lat, feat.lng], 16);
+                  setMapCenterAndZoom([feat.lat + 0.0035, feat.lng], 16);
                 }}
                 className="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700/80 hover:border-geovision-blue dark:hover:border-geovision-blue cursor-pointer transition-all flex items-center justify-between gap-3 shadow-2xs hover:shadow-md overflow-hidden group"
               >
@@ -389,7 +389,7 @@ export const AIMessageSearchResults: React.FC<AIMessageSearchResultsProps> = ({
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setMapCenterAndZoom([feat.lat, feat.lng], 16);
+                      setMapCenterAndZoom([feat.lat + 0.0035, feat.lng], 16);
                       if (currentView !== 'map') setCurrentView('map');
                       showToast(language === 'ar' ? `التركيز على ${feat.nameAr}` : `Zoomed to ${feat.nameEn}`);
                     }}
@@ -405,6 +405,7 @@ export const AIMessageSearchResults: React.FC<AIMessageSearchResultsProps> = ({
                     onClick={(e) => {
                       e.stopPropagation();
                       setSelectedFeature(feat);
+                      setMapCenterAndZoom([feat.lat + 0.0035, feat.lng], 16);
                       if (currentView !== 'map') setCurrentView('map');
                     }}
                     className="p-1.5 sm:p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-geovision-blue hover:text-white transition-all cursor-pointer shadow-2xs"
